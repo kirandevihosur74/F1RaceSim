@@ -1,0 +1,279 @@
+{
+  "name": "Simulation Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "simulation-trigger",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate incoming simulation request\nconst body = $input.first().json;\n\n// Required fields validation\nconst requiredFields = ['strategy', 'weather'];\nconst missingFields = requiredFields.filter(field => !body[field]);\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\n// Validate strategy structure\nconst strategy = body.strategy;\nif (!strategy.pit_stops || !Array.isArray(strategy.pit_stops)) {\n  throw new Error('Strategy must include pit_stops array');\n}\n\nif (!strategy.tires || !Array.isArray(strategy.tires)) {\n  throw new Error('Strategy must include tires array');\n}\n\nif (!strategy.driver_style) {\n  throw new Error('Strategy must include driver_style');\n}\n\n// Generate simulation ID\nconst simulationId = `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\nreturn [{\n  json: {\n    ...body,\n    simulation_id: simulationId,\n    timestamp: new Date().toISOString(),\n    status: 'validated'\n  }\n}];"
+      },
+      "id": "validate-request",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AWS_LAMBDA_API_URL }}/simulate-race",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AWS_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "strategy",
+              "value": "={{ $json.strategy }}"
+            },
+            {
+              "name": "weather",
+              "value": "={{ $json.weather }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "trigger-simulation",
+      "name": "Trigger AWS Lambda Simulation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "={{ $env.S3_BUCKET_NAME }}",
+        "fileName": "=simulation-results/{{ $('Validate Request').item.json.simulation_id }}/results.json",
+        "binaryData": false,
+        "dataPropertyName": "json"
+      },
+      "id": "store-results",
+      "name": "Store Results in S3",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": "={{ $env.DYNAMODB_TABLE }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "strategy_id": "={{ $('Validate Request').item.json.simulation_id }}",
+            "user_id": "={{ $('Validate Request').item.json.user_id || 'anonymous' }}",
+            "created_at": "={{ $('Validate Request').item.json.timestamp }}",
+            "strategy": "={{ JSON.stringify($('Validate Request').item.json.strategy) }}",
+            "weather": "={{ $('Validate Request').item.json.weather }}",
+            "status": "completed",
+            "total_time": "={{ $('Trigger AWS Lambda Simulation').item.json.total_time }}",
+            "s3_location": "=simulation-results/{{ $('Validate Request').item.json.simulation_id }}/results.json"
+          }
+        }
+      },
+      "id": "update-metadata",
+      "name": "Update DynamoDB Metadata",
+      "type": "n8n-nodes-base.awsDynamoDB",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-success",
+      "name": "Check Simulation Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "channel": "f1-simulations",
+        "text": "=🎯 F1 Simulation Completed Successfully\n\n**Simulation ID:** {{ $('Validate Request').item.json.simulation_id }}\n**Strategy:** {{ $('Validate Request').item.json.strategy.pit_stops.join(', ') }} pit stops, {{ $('Validate Request').item.json.strategy.tires.join(' → ') }}\n**Weather:** {{ $('Validate Request').item.json.weather }}\n**Total Time:** {{ $('Trigger AWS Lambda Simulation').item.json.total_time }}s\n**Laps:** {{ $('Trigger AWS Lambda Simulation').item.json.simulation.length }}\n\nResults stored and ready for analysis."
+      },
+      "id": "success-notification",
+      "name": "Notify Success",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "channel": "f1-simulations",
+        "text": "=❌ F1 Simulation Failed\n\n**Simulation ID:** {{ $('Validate Request').item.json.simulation_id }}\n**Error:** {{ $json.error || 'Unknown error' }}\n**Timestamp:** {{ $now.format('YYYY-MM-DD HH:mm:ss') }}\n\nPlease check the Lambda function logs and retry."
+      },
+      "id": "error-notification",
+      "name": "Notify Error",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"simulation_id\": \"{{ $('Validate Request').item.json.simulation_id }}\",\n  \"message\": \"Simulation completed successfully\",\n  \"results_url\": \"{{ $('Store Results in S3').item.json.url }}\"\n}"
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"simulation_id\": \"{{ $('Validate Request').item.json.simulation_id }}\",\n  \"error\": \"{{ $json.error || 'Simulation failed' }}\"\n}",
+        "responseCode": 500
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1780, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Trigger AWS Lambda Simulation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger AWS Lambda Simulation": {
+      "main": [
+        [
+          {
+            "node": "Store Results in S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Results in S3": {
+      "main": [
+        [
+          {
+            "node": "Update DynamoDB Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update DynamoDB Metadata": {
+      "main": [
+        [
+          {
+            "node": "Check Simulation Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Simulation Success": {
+      "main": [
+        [
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "simulation",
+      "name": "Simulation"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+} 

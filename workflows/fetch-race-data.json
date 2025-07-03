@@ -1,0 +1,232 @@
+{
+  "name": "Fetch F1 Race Data",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Weekly Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://ergast.com/api/f1/current/last/results.json",
+        "options": {}
+      },
+      "id": "ergast-api",
+      "name": "Fetch Latest Race Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://ergast.com/api/f1/current/last/qualifying.json",
+        "options": {}
+      },
+      "id": "qualifying-api",
+      "name": "Fetch Qualifying Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://ergast.com/api/f1/current/last/laps.json",
+        "options": {}
+      },
+      "id": "laps-api",
+      "name": "Fetch Lap Times",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine all race data\nconst raceData = {\n  timestamp: new Date().toISOString(),\n  race: $input.first().json.MRData.RaceTable.Races[0],\n  results: $input.first().json.MRData.RaceTable.Races[0]?.Results || [],\n  qualifying: $input.all()[1].json.MRData.RaceTable.Races[0]?.QualifyingResults || [],\n  laps: $input.all()[2].json.MRData.RaceTable.Races[0]?.Laps || []\n};\n\nreturn [{\n  json: raceData\n}];"
+      },
+      "id": "combine-data",
+      "name": "Combine Race Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "f1-race-simulator-dev-{{ $env.AWS_ACCOUNT_ID }}",
+        "fileName": "=historical-data/{{ $json.race.season }}/{{ $json.race.round }}/race-data-{{ $now.format('YYYY-MM-DD') }}.json",
+        "binaryData": false,
+        "dataPropertyName": "json"
+      },
+      "id": "s3-upload",
+      "name": "Upload to S3",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "success-check",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "channel": "f1-data-updates",
+        "text": "=✅ F1 race data successfully fetched and stored\n\n**Race:** {{ $('Fetch Latest Race Results').item.json.MRData.RaceTable.Races[0].raceName }}\n**Date:** {{ $('Fetch Latest Race Results').item.json.MRData.RaceTable.Races[0].date }}\n**Records:** {{ $('Combine Race Data').item.json.results.length }} results, {{ $('Combine Race Data').item.json.laps.length }} lap records\n\nData stored in S3 for simulation analysis."
+      },
+      "id": "slack-notification",
+      "name": "Notify Success",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "channel": "f1-data-updates",
+        "text": "=❌ Failed to fetch F1 race data\n\n**Error:** {{ $json.error || 'Unknown error' }}\n**Timestamp:** {{ $now.format('YYYY-MM-DD HH:mm:ss') }}\n\nPlease check the workflow execution and API endpoints."
+      },
+      "id": "error-notification",
+      "name": "Notify Error",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1780, 400]
+    }
+  ],
+  "connections": {
+    "Weekly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Latest Race Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Latest Race Results": {
+      "main": [
+        [
+          {
+            "node": "Fetch Qualifying Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Qualifying Results": {
+      "main": [
+        [
+          {
+            "node": "Fetch Lap Times",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Lap Times": {
+      "main": [
+        [
+          {
+            "node": "Combine Race Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Race Data": {
+      "main": [
+        [
+          {
+            "node": "Upload to S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to S3": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "f1-data",
+      "name": "F1 Data"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+} 

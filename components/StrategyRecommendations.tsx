@@ -1,0 +1,100 @@
+import React, { useEffect } from 'react'
+import { Brain, Lightbulb, TrendingUp } from 'lucide-react'
+import { useSimulationStore } from '@/store/simulationStore'
+
+const StrategyRecommendations: React.FC = () => {
+  const { 
+    strategyInput, 
+    recommendations, 
+    getStrategyRecommendation, 
+    isLoading 
+  } = useSimulationStore()
+
+  const handleGetRecommendation = () => {
+    if (strategyInput.pit_stops.length > 0 && strategyInput.tires.length > 0) {
+      const scenario = `Pit stops at laps ${strategyInput.pit_stops.join(', ')}, using ${strategyInput.tires.join(' → ')}, driver style: ${strategyInput.driver_style}`
+      getStrategyRecommendation(scenario)
+    }
+  }
+
+  return (
+    <div className="card">
+      <div className="flex items-center space-x-2 mb-6">
+        <Brain className="w-6 h-6 text-f1-blue" />
+        <h2 className="text-xl font-bold text-gray-900">AI Strategy Recommendations</h2>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-f1-blue"></div>
+          <span className="ml-2 text-gray-600">Analyzing strategy...</span>
+        </div>
+      ) : recommendations ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">AI Analysis</h3>
+                {typeof recommendations === 'object' ? (
+                  <div>
+                    <h4 className="font-bold mt-2">Pit Stop Timing</h4>
+                    <p>{recommendations.pit_stop_timing}</p>
+                    <h4 className="font-bold mt-2">Tire Compound Strategy</h4>
+                    <p>{recommendations.tire_compound_strategy}</p>
+                    <h4 className="font-bold mt-2">Driver Approach Adjustments</h4>
+                    <p>{recommendations.driver_approach_adjustments}</p>
+                    <h4 className="font-bold mt-2">Potential Time Savings/Risks</h4>
+                    <p>{recommendations.potential_time_savings_or_risks}</p>
+                  </div>
+                ) : (
+                  <p>{recommendations}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Strategy Tips */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <TrendingUp className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Strategy Tips</h3>
+                <ul className="text-gray-700 text-sm space-y-1">
+                  <li>• Consider tire degradation patterns for optimal pit timing</li>
+                  <li>• Balance aggressive driving with tire conservation</li>
+                  <li>• Monitor weather conditions for tire compound selection</li>
+                  <li>• Factor in track position and traffic management</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          {/* Refresh Recommendation Button */}
+          <div className="text-center mt-4">
+            <button
+              onClick={handleGetRecommendation}
+              className="bg-f1-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+              Refresh AI Recommendation
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <Brain className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-gray-500 mb-4">Configure your strategy to get AI recommendations</p>
+          <button
+            onClick={handleGetRecommendation}
+            disabled={strategyInput.pit_stops.length === 0 || strategyInput.tires.length === 0}
+            className="bg-f1-blue hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-2 px-4 rounded transition-colors"
+          >
+            Get AI Strategy Recommendation
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default StrategyRecommendations 

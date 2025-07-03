@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: F1 Race Simulator - AI-powered Formula 1 strategy analysis
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.9
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        POWERTOOLS_SERVICE_NAME: f1-race-simulator
+
+Resources:
+  # S3 Bucket for simulation results and data storage
+  SimulationDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub f1-race-simulator-${Environment}-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldSimulations
+            Status: Enabled
+            ExpirationInDays: 90
+
+  # DynamoDB Table for structured metadata
+  StrategyMetadataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub f1-strategy-metadata-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: strategy_id
+          AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: S
+      KeySchema:
+        - AttributeName: strategy_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UserIdIndex
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+  
+   # Explicit API Gateway resource
+
+
+  # Lambda function for the FastAPI application
+  F1RaceSimulatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub f1-race-simulator-${Environment}
+      CodeUri: ../backend/
+      Handler: main.handler
+      Environment:
+        Variables:
+          SIMULATION_BUCKET: !Ref SimulationDataBucket
+          METADATA_TABLE: !Ref StrategyMetadataTable
+          GEMINI_API_KEY: '{{resolve:secretsmanager:gemini-api-key:SecretString:api_key}}'
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SimulationDataBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref StrategyMetadataTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:gemini-api-key-*
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: arn:aws:logs:*:*:*
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+Outputs:
+  F1RaceSimulatorApi:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiUrl
+
+  SimulationDataBucket:
+    Description: S3 bucket for simulation data
+    Value: !Ref SimulationDataBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-SimulationBucket
+
+  StrategyMetadataTable:
+    Description: DynamoDB table for strategy metadata
+    Value: !Ref StrategyMetadataTable
+    Export:
+      Name: !Sub ${AWS::StackName}-MetadataTable
+
+  F1RaceSimulatorFunction:
+    Description: Lambda function ARN
+    Value: !GetAtt F1RaceSimulatorFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-FunctionArn
