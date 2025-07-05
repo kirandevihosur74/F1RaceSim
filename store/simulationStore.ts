@@ -7,6 +7,12 @@ export interface StrategyInput {
   driver_style: 'conservative' | 'balanced' | 'aggressive'
 }
 
+// Add a meta type for strategies
+export interface StrategyInputWithMeta extends StrategyInput {
+  id: string
+  name: string
+}
+
 export interface SimulationResult {
   lap: number
   lap_time: number
@@ -103,7 +109,8 @@ export interface ComparisonResult {
 
 interface SimulationStore {
   // Basic simulation state
-  strategyInput: StrategyInput
+  strategies: StrategyInputWithMeta[]
+  activeStrategyId: string | null
   simulationResults: SimulationResult[]
   multiCarResults: MultiCarSimulationResult[]
   recommendations: any
@@ -122,7 +129,10 @@ interface SimulationStore {
   apiError: string | null
   
   // Actions
-  setStrategyInput: (input: Partial<StrategyInput>) => void
+  addStrategy: (strategy: Omit<StrategyInputWithMeta, 'id'>) => void
+  editStrategy: (id: string, updates: Partial<StrategyInputWithMeta>) => void
+  deleteStrategy: (id: string) => void
+  setActiveStrategy: (id: string | null) => void
   runSimulation: (weather?: string) => Promise<void>
   runMultiCarSimulation: (carConfigs: any[], weather?: string) => Promise<void>
   getStrategyRecommendation: (scenario: string) => Promise<void>
@@ -141,11 +151,16 @@ interface SimulationStore {
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
   // Initial state
-  strategyInput: {
-    pit_stops: [15, 35],
-    tires: ['Medium', 'Hard', 'Medium'],
-    driver_style: 'balanced'
-  },
+  strategies: [
+    {
+      id: 'default-1',
+      name: 'Balanced Strategy',
+      pit_stops: [15, 35],
+      tires: ['Medium', 'Hard', 'Medium'],
+      driver_style: 'balanced'
+    }
+  ],
+  activeStrategyId: null,
   simulationResults: [],
   multiCarResults: [],
   recommendations: null,
@@ -164,17 +179,36 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   apiError: null,
 
   // Basic actions
-  setStrategyInput: (input) => {
+  addStrategy: (strategy) => {
+    const id = `strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
     set((state) => ({
-      strategyInput: { ...state.strategyInput, ...input }
-    }))
+      strategies: [...state.strategies, { ...strategy, id }]
+    }));
+  },
+  editStrategy: (id, updates) => {
+    set((state) => ({
+      strategies: state.strategies.map(s => s.id === id ? { ...s, ...updates } : s)
+    }));
+  },
+  deleteStrategy: (id) => {
+    set((state) => {
+      const newStrategies = state.strategies.filter(s => s.id !== id)
+      return {
+        strategies: newStrategies,
+        activeStrategyId: newStrategies.length > 0 ? newStrategies[0].id : null
+      }
+    })
+  },
+  setActiveStrategy: (id) => {
+    set({ activeStrategyId: id });
   },
 
   runSimulation: async (weather = 'dry') => {
     set({ isLoading: true })
     
     try {
-      const { strategyInput, selectedTrack } = get()
+      const { strategies, activeStrategyId, selectedTrack } = get()
+      const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
       
       const response = await fetch('/api/simulate-race', {
         method: 'POST',
@@ -182,7 +216,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          strategy: strategyInput,
+          strategy,
           weather,
           track_id: selectedTrack,
           simulation_type: 'single_car'

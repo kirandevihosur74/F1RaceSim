@@ -1,34 +1,18 @@
 import React, { useState } from 'react'
-import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target } from 'lucide-react'
+import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target, Plus } from 'lucide-react'
 import { useSimulationStore } from '@/store/simulationStore'
 
 const StrategyComparison: React.FC = () => {
   const { 
+    strategies, 
     comparisonResults, 
     compareStrategies, 
-    isLoading 
+    isLoading, 
+    deleteStrategy, 
+    setActiveStrategy, 
+    addStrategy,
+    activeStrategyId
   } = useSimulationStore()
-
-  const [strategies, setStrategies] = useState([
-    {
-      name: "Aggressive Soft Strategy",
-      pit_stops: [12, 28],
-      tires: ["Soft", "Soft", "Medium"],
-      driver_style: "aggressive"
-    },
-    {
-      name: "Conservative Hard Strategy",
-      pit_stops: [20, 40],
-      tires: ["Medium", "Hard", "Hard"],
-      driver_style: "conservative"
-    },
-    {
-      name: "Balanced Strategy",
-      pit_stops: [15, 35],
-      tires: ["Medium", "Hard", "Medium"],
-      driver_style: "balanced"
-    }
-  ])
 
   const handleCompareStrategies = () => {
     compareStrategies(strategies)
@@ -49,37 +33,97 @@ const StrategyComparison: React.FC = () => {
   if (!comparisonResults) {
     return (
       <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Strategy Comparison</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Strategy Comparison</h2>
+          <button
+            onClick={() => {
+              const newStrategy = {
+                name: `Strategy ${strategies.length + 1}`,
+                pit_stops: [15, 35],
+                tires: ['Medium', 'Hard', 'Medium'],
+                driver_style: 'balanced' as const
+              }
+              addStrategy(newStrategy)
+              setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
+            }}
+            className="btn-secondary flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Strategy</span>
+          </button>
+        </div>
         
-        <div className="space-y-4">
-          {strategies.map((strategy, index) => (
-            <div key={index} className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">{strategy.name}</h3>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Pit Stops:</span>
-                  <span className="ml-2 font-medium">{strategy.pit_stops.join(', ')}</span>
+        {strategies.length === 0 ? (
+          <div className="text-center py-8">
+            <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-gray-500 mb-4">Add strategies to compare.</p>
+            <button
+              onClick={() => {
+                const newStrategy = {
+                  name: `Strategy 1`,
+                  pit_stops: [15, 35],
+                  tires: ['Medium', 'Hard', 'Medium'],
+                  driver_style: 'balanced' as const
+                }
+                addStrategy(newStrategy)
+                setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
+              }}
+              className="btn-primary flex items-center space-x-2 mt-4"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Strategy</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {strategies.map((strategy) => (
+              <div key={strategy.id} className={`p-4 border rounded-lg flex flex-col gap-2 ${
+                strategy.id === activeStrategyId 
+                  ? 'border-blue-300 bg-blue-50' 
+                  : 'border-gray-200'
+              }`}>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-semibold text-gray-900">{strategy.name}</h3>
+                    {strategy.id === activeStrategyId && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Editing</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setActiveStrategy(strategy.id)} className="text-f1-blue hover:underline text-xs">Edit</button>
+                    <button onClick={() => deleteStrategy(strategy.id)} className="text-red-600 hover:underline text-xs">Delete</button>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-600">Tires:</span>
-                  <span className="ml-2 font-medium">{strategy.tires.join(' → ')}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Style:</span>
-                  <span className="ml-2 font-medium capitalize">{strategy.driver_style}</span>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Pit Stops:</span>
+                    <span className="ml-2 font-medium">{strategy.pit_stops.join(', ')}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Tires:</span>
+                    <span className="ml-2 font-medium">{strategy.tires.join(' → ')}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Style:</span>
+                    <span className="ml-2 font-medium capitalize">{strategy.driver_style}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         
         <button
           onClick={handleCompareStrategies}
-          disabled={isLoading}
+          disabled={isLoading || strategies.length < 2}
           className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50"
         >
           <BarChart3 className="w-5 h-5" />
-          <span>{isLoading ? 'Comparing...' : 'Compare Strategies'}</span>
+          <span>
+            {isLoading ? 'Comparing...' : 
+             strategies.length < 2 ? 'Need at least 2 strategies' : 
+             'Compare Strategies'}
+          </span>
         </button>
       </div>
     )

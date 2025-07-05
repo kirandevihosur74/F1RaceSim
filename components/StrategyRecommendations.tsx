@@ -4,17 +4,46 @@ import { useSimulationStore } from '@/store/simulationStore'
 
 const StrategyRecommendations: React.FC = () => {
   const { 
-    strategyInput, 
+    strategies, 
+    activeStrategyId, 
     recommendations, 
     getStrategyRecommendation, 
-    isLoading 
+    isLoading, 
+    addStrategy, 
+    setActiveStrategy
   } = useSimulationStore()
+  const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
 
   const handleGetRecommendation = () => {
-    if (strategyInput.pit_stops.length > 0 && strategyInput.tires.length > 0) {
-      const scenario = `Pit stops at laps ${strategyInput.pit_stops.join(', ')}, using ${strategyInput.tires.join(' → ')}, driver style: ${strategyInput.driver_style}`
+    if (strategy && strategy.pit_stops.length > 0 && strategy.tires.length > 0) {
+      const scenario = `Pit stops at laps ${strategy.pit_stops.join(', ')}, using ${strategy.tires.join(' → ')}, driver style: ${strategy.driver_style}`
       getStrategyRecommendation(scenario)
     }
+  }
+
+  const handleNewStrategy = () => {
+    const newStrategy = {
+      name: `Strategy ${strategies.length + 1}`,
+      pit_stops: [15, 35],
+      tires: ['Medium', 'Hard', 'Medium'],
+      driver_style: 'balanced' as const
+    }
+    addStrategy(newStrategy)
+    setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
+  }
+
+  if (!strategy) {
+    return (
+      <div className="card flex flex-col items-center justify-center py-12">
+        <p className="text-gray-600 mb-4">Add strategies to compare.</p>
+        <button
+          onClick={handleNewStrategy}
+          className="btn-primary flex items-center space-x-2"
+        >
+          <span>New Strategy</span>
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -86,7 +115,7 @@ const StrategyRecommendations: React.FC = () => {
           <p className="text-gray-500 mb-4">Configure your strategy to get AI recommendations</p>
           <button
             onClick={handleGetRecommendation}
-            disabled={strategyInput.pit_stops.length === 0 || strategyInput.tires.length === 0}
+            disabled={strategy.pit_stops.length === 0 || strategy.tires.length === 0}
             className="bg-f1-blue hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Get AI Strategy Recommendation

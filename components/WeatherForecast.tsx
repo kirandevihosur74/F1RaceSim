@@ -125,7 +125,7 @@ const WeatherForecast: React.FC = () => {
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="text-sm text-gray-600">Wind Speed</div>
               <div className="text-lg font-semibold text-gray-800">
-                {weatherForecast[0].wind_speed} km/h
+                {weatherForecast[0].wind_speed.toFixed(2)} km/h
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">

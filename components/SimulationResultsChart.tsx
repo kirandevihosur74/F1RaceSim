@@ -1,22 +1,42 @@
 import React from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from 'recharts'
+import dynamic from 'next/dynamic'
 import { useSimulationStore } from '@/store/simulationStore'
 
-const SimulationResultsChart: React.FC = () => {
-  const { simulationResults, totalTime, strategyAnalysis } = useSimulationStore()
+// Dynamically import ApexCharts to avoid SSR issues
+const ApexCharts = dynamic(() => import('react-apexcharts'), { ssr: false })
 
-  if (!simulationResults) {
+// Helper to format lap time as mm:ss.s
+const formatLapTime = (time: number) => {
+  const minutes = Math.floor(time / 60)
+  const seconds = (time % 60).toFixed(1).padStart(4, '0')
+  return `${minutes}:${seconds}`
+}
+
+// Helper to format total time as hh:mm:ss.s
+const formatTotalTime = (time: number) => {
+  const hours = Math.floor(time / 3600)
+  const minutes = Math.floor((time % 3600) / 60)
+  const seconds = (time % 60).toFixed(1).padStart(4, '0')
+  return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds}`
+}
+
+const SimulationResultsChart: React.FC = () => {
+  const {
+    simulationResults,
+    totalTime,
+    strategyAnalysis,
+    strategies,
+    activeStrategyId,
+    selectedTrack,
+    availableTracks,
+  } = useSimulationStore()
+
+  // Get active strategy for context
+  const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
+  const track = availableTracks.find(t => t.id === selectedTrack)
+  const weather = 'Dry'
+
+  if (!simulationResults || simulationResults.length === 0) {
     return (
       <div className="card">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Simulation Results</h2>
@@ -27,121 +47,151 @@ const SimulationResultsChart: React.FC = () => {
     )
   }
 
-  const formatLapTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = (time % 60).toFixed(1)
-    return `${minutes}:${seconds.padStart(4, '0')}`
+  // Prepare data for ApexCharts
+  const laps = simulationResults.map(d => d.lap)
+  const lapTimes = simulationResults.map(d => d.lap_time)
+  const tireWear = simulationResults.map(d => d.tire_wear)
+  const pitStops = strategy?.pit_stops || []
+  const tireSequence = strategy?.tires?.join(' → ')
+  const driverStyle = strategy?.driver_style
+  const strategyName = strategy?.name
+
+  // ApexCharts options
+  const options = {
+    chart: {
+      id: 'f1-sim-results',
+      toolbar: { show: false },
+      zoom: { enabled: true },
+      fontFamily: 'inherit',
+    },
+    stroke: { width: [3, 2], curve: 'smooth' as const },
+    colors: ['#E10600', '#1E3A8A'],
+    xaxis: {
+      categories: laps,
+      title: { text: 'Lap', style: { fontWeight: 600, fontSize: '14px' } },
+      labels: { style: { fontSize: '12px' } },
+    },
+    yaxis: [
+      {
+        title: { text: 'Lap Time (mm:ss.s)', style: { fontWeight: 600, fontSize: '14px' } },
+        labels: {
+          formatter: (val: number) => formatLapTime(val),
+          style: { fontSize: '12px' },
+        },
+      },
+      {
+        opposite: true,
+        title: { text: 'Tire Wear (%)', style: { fontWeight: 600, fontSize: '14px' } },
+        labels: {
+          formatter: (val: number) => `${val.toFixed(1)}%`,
+          style: { fontSize: '12px' },
+        },
+        min: 0,
+        max: 100,
+      },
+    ],
+    tooltip: {
+      shared: true,
+      custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+        const lap = w.globals.categoryLabels[dataPointIndex]
+        const lapTime = series[0][dataPointIndex]
+        const tire = series[1][dataPointIndex]
+        return `
+          <div class='p-2'>
+            <div class='font-semibold mb-1'>Lap ${lap}</div>
+            <div class='text-f1-red'>Lap Time: ${formatLapTime(lapTime)}</div>
+            <div class='text-f1-blue'>Tire Wear: ${tire !== undefined ? tire.toFixed(1) + '%' : 'N/A'}</div>
+          </div>
+        `
+      }
+    },
+    legend: {
+      show: true,
+      position: 'top' as const,
+      fontSize: '14px',
+      fontWeight: 500,
+      labels: { colors: '#374151' },
+      // Use default markers
+    },
+    annotations: {
+      xaxis: pitStops.map((lap, idx) => ({
+        x: lap,
+        borderColor: '#FFB800',
+        label: {
+          style: { color: '#000', background: '#FFB800', fontWeight: 600 },
+          text: `Pit Stop ${idx + 1}`,
+        },
+      })),
+    },
+    grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 300 },
+          legend: { fontSize: '12px' },
+        },
+      },
+    ],
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded shadow-lg">
-          <p className="font-medium">Lap {label}</p>
-          <p className="text-f1-red">
-            Lap Time: {formatLapTime(payload[0].value)}
-          </p>
-          <p className="text-f1-blue">
-            Tire Wear: {payload[1]?.value?.toFixed(1)}%
-          </p>
-        </div>
-      )
-    }
-    return null
-  }
+  const series = [
+    {
+      name: 'Lap Time',
+      type: 'line',
+      data: lapTimes,
+    },
+    {
+      name: 'Tire Wear',
+      type: 'area',
+      data: tireWear,
+      yAxisIndex: 1,
+    },
+  ]
 
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Simulation Results</h2>
-      
-      <div className="space-y-6">
-        {/* Lap Times Chart */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Lap Times</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={simulationResults}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="lap" 
-                stroke="#6b7280"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                stroke="#6b7280"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => formatLapTime(value)}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="lap_time"
-                stroke="#E10600"
-                strokeWidth={2}
-                dot={{ fill: '#E10600', strokeWidth: 2, r: 3 }}
-                activeDot={{ r: 6, stroke: '#E10600', strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Tire Wear Chart */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Tire Wear</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={simulationResults}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="lap" 
-                stroke="#6b7280"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                stroke="#6b7280"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <Tooltip 
-                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Tire Wear']}
-                labelFormatter={(label) => `Lap ${label}`}
-              />
-              <Area
-                type="monotone"
-                dataKey="tire_wear"
-                stroke="#1E3A8A"
-                fill="#1E3A8A"
-                fillOpacity={0.3}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Summary Statistics */}
-        {totalTime && (
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-sm text-gray-600">Total Race Time</p>
-              <p className="text-xl font-bold text-f1-red">
-                {formatLapTime(totalTime)}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">Average Lap Time</p>
-              <p className="text-xl font-bold text-f1-blue">
-                {formatLapTime(totalTime / simulationResults.length)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Strategy Analysis */}
-        {strategyAnalysis && (
-          <div className="pt-4 border-t border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Strategy Analysis</h3>
-            <p className="text-gray-700">{strategyAnalysis}</p>
-          </div>
-        )}
+      {/* Context Row */}
+      <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-700 items-center">
+        {track && <span><b>Track:</b> {track.name}</span>}
+        <span><b>Weather:</b> {weather}</span>
+        {tireSequence && <span><b>Tires:</b> {tireSequence}</span>}
+        {driverStyle && <span><b>Driver Style:</b> {driverStyle.charAt(0).toUpperCase() + driverStyle.slice(1)}</span>}
+        {strategyName && <span><b>Strategy:</b> {strategyName}</span>}
       </div>
+      <div className="mb-8">
+        <ApexCharts
+          options={options}
+          series={series}
+          type="line"
+          height={400}
+        />
+      </div>
+      {/* Summary Statistics */}
+      {totalTime && (
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Total Race Time</p>
+            <p className="text-xl font-bold text-f1-red">
+              {formatTotalTime(totalTime)}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Average Lap Time</p>
+            <p className="text-xl font-bold text-f1-blue">
+              {formatLapTime(totalTime / simulationResults.length)}
+            </p>
+          </div>
+        </div>
+      )}
+      {/* Strategy Analysis */}
+      {strategyAnalysis && (
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Strategy Analysis</h3>
+          <p className="text-gray-700">{strategyAnalysis}</p>
+        </div>
+      )}
     </div>
   )
 }

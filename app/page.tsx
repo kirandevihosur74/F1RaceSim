@@ -64,12 +64,16 @@ export default function Home() {
             <WeatherForecast />
           </div>
 
-          {/* Strategy Form & Results - narrower */}
+          {/* Strategy Form & Recommendations - narrower */}
           <div className="lg:col-span-2 space-y-6 max-w-xl mx-auto">
             <RaceStrategyForm />
-            <SimulationResultsChart />
             <StrategyRecommendations />
           </div>
+        </div>
+
+        {/* Full Width - Simulation Results */}
+        <div className="mt-8">
+          <SimulationResultsChart />
         </div>
 
         {/* Full Width - Strategy Comparison */}

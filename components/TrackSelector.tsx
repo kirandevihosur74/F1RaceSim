@@ -1,5 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useSimulationStore } from '@/store/simulationStore'
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Helper to get flag emoji by country name
 const getFlag = (country: string) => {
@@ -35,13 +40,16 @@ const TrackSelector: React.FC = () => {
     setSelectedTrack(trackId)
   }
 
+  // Swiper custom navigation refs
+  const prevRef = useRef<HTMLButtonElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-gray-900">Track Selection</h3>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="text-xs text-gray-600">API Data</span>
+          
         </div>
       </div>
 
@@ -65,39 +73,87 @@ const TrackSelector: React.FC = () => {
         </div>
       )}
 
-      {/* Track Card Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-        {availableTracks.map((track) => (
-          <button
-            key={track.id}
-            className={`
-              relative bg-white rounded-xl shadow-md p-6 flex flex-col items-start
-              border-2 w-full min-w-[220px] max-w-xs min-h-[200px] text-left transition overflow-hidden
-              ${selectedTrack === track.id ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'}
-            `}
-            onClick={() => handleTrackChange(track.id)}
-            style={{ zIndex: selectedTrack === track.id ? 1 : 0 }}
-          >
-            <div className="flex items-center mb-2">
-              <span className="text-2xl mr-2">{getFlag(track.country)}</span>
-              <span className="font-bold text-lg break-words">{track.name}</span>
-            </div>
-            <div className="text-gray-500 text-xs mb-1">{track.country}</div>
-            <div className="flex flex-wrap gap-2 text-xs text-gray-700 mb-2">
-              <span>Length: <b>{track.circuit_length}km</b></span>
-              <span>Laps: <b>{track.total_laps}</b></span>
-              <span>Record: <b>{track.lap_record}s</b></span>
-            </div>
-            {/* Badges row at the bottom */}
-            <div className="flex gap-2 mt-auto">
-              <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Weather {Math.round(track.weather_sensitivity * 100)}%</span>
-              <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Overtaking: {track.overtaking_difficulty < 0.3 ? 'Easy' : track.overtaking_difficulty < 0.7 ? 'Medium' : 'Hard'}</span>
-            </div>
-            {selectedTrack === track.id && (
-              <span className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded shadow">Selected</span>
-            )}
-          </button>
-        ))}
+      {/* Swiper Carousel for Track Cards with custom navigation */}
+      <div className="relative">
+        {/* Custom Left Arrow */}
+        <button
+          ref={prevRef}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-blue-100 transition disabled:opacity-30"
+          style={{ marginLeft: '-32px' }}
+          aria-label="Previous"
+        >
+          <ChevronLeft className="w-6 h-6 text-blue-600" />
+        </button>
+        <Swiper
+          modules={[Navigation]}
+          navigation={{
+            prevEl: prevRef.current,
+            nextEl: nextRef.current,
+          }}
+          onInit={(swiper) => {
+            // @ts-ignore
+            swiper.params.navigation.prevEl = prevRef.current;
+            // @ts-ignore
+            swiper.params.navigation.nextEl = nextRef.current;
+            swiper.navigation.init();
+            swiper.navigation.update();
+          }}
+          spaceBetween={24}
+          slidesPerView={3}
+          className="w-full"
+        >
+          {availableTracks.map((track) => (
+            <SwiperSlide key={track.id}>
+              <button
+                className={`
+                  relative bg-white rounded-xl shadow-md p-6 flex flex-col items-start
+                  border-2 w-full min-w-[220px] max-w-xs h-[260px] text-left transition overflow-x-hidden
+                  ${selectedTrack === track.id ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'}
+                `}
+                onClick={() => handleTrackChange(track.id)}
+                style={{ zIndex: selectedTrack === track.id ? 1 : 0 }}
+              >
+                <div className="flex items-center mb-2">
+                  <span className="text-2xl mr-2">{getFlag(track.country)}</span>
+                  <span className="font-bold text-lg break-words line-clamp-2">{track.name}</span>
+                </div>
+                <div className="text-gray-500 text-xs mb-1">{track.country}</div>
+                <div className="flex flex-col gap-2 mt-auto w-full">
+                  {/* Weather Sensitivity Badge with Tooltip */}
+                  <div className="relative group w-full">
+                    <span className="block w-full max-w-full bg-blue-50 text-blue-700 px-2 py-0.5 rounded cursor-help truncate">
+                      Weather Sensitivity: {Math.round(track.weather_sensitivity * 100)}%
+                    </span>
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white text-xs text-gray-700 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                      Historical likelihood of variable weather at this circuit. Not a real-time forecast.
+                    </div>
+                  </div>
+                  {/* Overtaking Badge with Tooltip */}
+                  <div className="relative group w-full">
+                    <span className="block w-full max-w-full bg-gray-100 text-gray-700 px-2 py-0.5 rounded cursor-help truncate">
+                      Overtaking: {track.overtaking_difficulty < 0.3 ? 'Easy' : track.overtaking_difficulty < 0.7 ? 'Medium' : 'Hard'}
+                    </span>
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white text-xs text-gray-700 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                      How difficult it is to overtake at this circuit, based on layout and history.
+                    </div>
+                  </div>
+                </div>
+                {selectedTrack === track.id && (
+                  <span className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded shadow">Selected</span>
+                )}
+              </button>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        {/* Custom Right Arrow */}
+        <button
+          ref={nextRef}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-blue-100 transition disabled:opacity-30"
+          style={{ marginRight: '-32px' }}
+          aria-label="Next"
+        >
+          <ChevronRight className="w-6 h-6 text-blue-600" />
+        </button>
       </div>
 
       {availableTracks.length === 0 && !isLoading && (
