@@ -1,6 +1,10 @@
 import random
 from typing import List, Dict, Any
 from dataclasses import dataclass
+from .tracks import track_db
+from .multi_car_simulation import MultiCarSimulator, create_sample_car_configs
+from .weather_system import WeatherSimulator
+from .strategy_comparison import StrategyComparator, create_sample_strategies
 
 @dataclass
 class TireCompound:
@@ -17,7 +21,9 @@ class DriverStyle:
     fuel_efficiency: float
 
 class RaceSimulator:
-    def __init__(self):
+    def __init__(self, track_id: str = "silverstone"):
+        self.track = track_db.get_track(track_id)
+        
         # Tire compound definitions
         self.tire_compounds = {
             "Soft": TireCompound("Soft", 1.0, 1.5, 1.2),
@@ -42,9 +48,14 @@ class RaceSimulator:
         }
         
         # Track characteristics
-        self.base_lap_time = 85.0  # Base lap time in seconds
+        self.base_lap_time = self.track.lap_record  # Use track lap record as base
         self.fuel_load_impact = 0.02  # Seconds per lap per lap number
         self.pit_stop_time = 25.0  # Pit stop time in seconds
+        
+        # Initialize weather and multi-car simulators
+        self.weather_simulator = WeatherSimulator()
+        self.multi_car_simulator = MultiCarSimulator(track_id)
+        self.strategy_comparator = StrategyComparator(track_id)
         
     def calculate_lap_time(self, lap: int, tire_wear: float, current_tire: str, 
                           driver_style: str, weather: str, fuel_load: float) -> float:
@@ -55,7 +66,7 @@ class RaceSimulator:
         style = self.driver_styles.get(driver_style, self.driver_styles["balanced"])
         weather_data = self.weather_conditions.get(weather, self.weather_conditions["dry"])
         
-        # Base lap time
+        # Base lap time from track record
         lap_time = self.base_lap_time
         
         # Fuel load impact (increases with lap number)
@@ -102,25 +113,31 @@ class RaceSimulator:
         # Weather impact
         wear_increase *= weather_data["wear_multiplier"]
         
+        # Track-specific degradation
+        track_degradation = self.track.tire_degradation.get(current_tire, 1.0)
+        wear_increase *= track_degradation
+        
         # Add some randomness
         wear_increase += (random.random() - 0.5) * 0.3
         
         return current_wear + max(0, wear_increase)
 
-def simulate_race(strategy, weather: str = "dry") -> List[Dict[str, Any]]:
+def simulate_race(strategy, weather: str = "dry", track_id: str = "silverstone") -> List[Dict[str, Any]]:
     """
     Simulate a complete F1 race with the given strategy.
     
     Args:
         strategy: StrategyInput object or dictionary containing pit_stops, tires, and driver_style
         weather: Weather conditions (dry, wet, intermediate)
+        track_id: Track identifier
     
     Returns:
         List of lap-by-lap simulation results
     """
     
-    simulator = RaceSimulator()
-    total_laps = 58
+    simulator = RaceSimulator(track_id)
+    track = track_db.get_track(track_id)
+    total_laps = track.total_laps
     results = []
     
     # Initialize race state
@@ -177,4 +194,126 @@ def simulate_race(strategy, weather: str = "dry") -> List[Dict[str, Any]]:
             "fuel_load": round(fuel_load, 1)
         })
     
-    return results 
+    return results
+
+def simulate_multi_car_race(car_configs: List[Dict[str, Any]], 
+                           weather: str = "dry", 
+                           track_id: str = "silverstone") -> List[Dict[str, Any]]:
+    """
+    Simulate a multi-car race with overtaking and traffic management.
+    
+    Args:
+        car_configs: List of car configurations
+        weather: Weather conditions
+        track_id: Track identifier
+    
+    Returns:
+        List of lap-by-lap simulation results with multiple cars
+    """
+    simulator = MultiCarSimulator(track_id)
+    return simulator.simulate_race(car_configs, weather)
+
+def compare_strategies(strategies: List[Dict[str, Any]], 
+                      weather: str = "dry", 
+                      track_id: str = "silverstone",
+                      num_simulations: int = 5) -> Dict[str, Any]:
+    """
+    Compare multiple strategies and provide analysis.
+    
+    Args:
+        strategies: List of strategies to compare
+        weather: Weather conditions
+        track_id: Track identifier
+        num_simulations: Number of simulations per strategy
+    
+    Returns:
+        Comparison results with analysis
+    """
+    comparator = StrategyComparator(track_id)
+    result = comparator.compare_strategies(strategies, weather, num_simulations)
+    
+    return {
+        "strategies": [
+            {
+                "name": s.strategy_name,
+                "total_time": s.total_time,
+                "pit_stops": s.pit_stops,
+                "tires": s.tires,
+                "driver_style": s.driver_style,
+                "best_lap": s.best_lap,
+                "average_lap": s.average_lap,
+                "risk_score": s.risk_score,
+                "tire_wear_analysis": s.tire_wear_analysis,
+                "weather_impact": s.weather_impact
+            }
+            for s in result.strategies
+        ],
+        "winner": {
+            "name": result.winner.strategy_name,
+            "total_time": result.winner.total_time
+        },
+        "key_differences": result.key_differences,
+        "optimization_suggestions": result.optimization_suggestions,
+        "risk_analysis": result.risk_analysis
+    }
+
+def get_available_tracks() -> List[Dict[str, Any]]:
+    """Get list of available tracks for frontend selection"""
+    return track_db.get_track_list()
+
+def get_track_details(track_id: str) -> Dict[str, Any]:
+    """Get detailed information about a specific track"""
+    track = track_db.get_track(track_id)
+    return {
+        "id": track_id,
+        "name": track.name,
+        "country": track.country,
+        "circuit_length": track.circuit_length,
+        "total_laps": track.total_laps,
+        "lap_record": track.lap_record,
+        "sectors": [
+            {
+                "name": sector.name,
+                "length": sector.length,
+                "base_time": sector.base_time,
+                "tire_wear_factor": sector.tire_wear_factor,
+                "fuel_consumption_factor": sector.fuel_consumption_factor
+            }
+            for sector in track.sectors
+        ],
+        "tire_degradation": track.tire_degradation,
+        "weather_sensitivity": track.weather_sensitivity,
+        "overtaking_difficulty": track.overtaking_difficulty
+    }
+
+def generate_weather_forecast(track_id: str = "silverstone", 
+                            total_laps: int = 0) -> List[Dict[str, Any]]:
+    """Generate weather forecast for the race"""
+    if total_laps == 0:
+        track = track_db.get_track(track_id)
+        total_laps = track.total_laps
+    
+    weather_simulator = WeatherSimulator()
+    forecast = weather_simulator.generate_weather_forecast(total_laps, track_id)
+    
+    return [
+        {
+            "lap": i + 1,
+            "condition": weather.condition,
+            "temperature": weather.temperature,
+            "humidity": weather.humidity,
+            "wind_speed": weather.wind_speed,
+            "rain_probability": weather.rain_probability,
+            "track_temperature": weather.track_temperature,
+            "grip_level": weather.grip_level
+        }
+        for i, weather in enumerate(forecast)
+    ]
+
+def get_sample_car_configs() -> List[Dict[str, Any]]:
+    """Get sample car configurations for multi-car simulation"""
+    return create_sample_car_configs()
+
+def get_sample_strategies() -> List[Dict[str, Any]]:
+    """Get sample strategies for comparison"""
+    return create_sample_strategies() 

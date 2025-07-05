@@ -14,7 +14,7 @@ import {
 import { useSimulationStore } from '@/store/simulationStore'
 
 const SimulationResultsChart: React.FC = () => {
-  const { simulationResults } = useSimulationStore()
+  const { simulationResults, totalTime, strategyAnalysis } = useSimulationStore()
 
   if (!simulationResults) {
     return (
@@ -59,7 +59,7 @@ const SimulationResultsChart: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Lap Times</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={simulationResults.simulation}>
+            <LineChart data={simulationResults}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
                 dataKey="lap" 
@@ -89,7 +89,7 @@ const SimulationResultsChart: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Tire Wear</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={simulationResults.simulation}>
+            <AreaChart data={simulationResults}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
                 dataKey="lap" 
@@ -117,20 +117,28 @@ const SimulationResultsChart: React.FC = () => {
         </div>
 
         {/* Summary Statistics */}
-        {simulationResults.total_time && (
+        {totalTime && (
           <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
             <div className="text-center">
               <p className="text-sm text-gray-600">Total Race Time</p>
               <p className="text-xl font-bold text-f1-red">
-                {formatLapTime(simulationResults.total_time)}
+                {formatLapTime(totalTime)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-600">Average Lap Time</p>
               <p className="text-xl font-bold text-f1-blue">
-                {formatLapTime(simulationResults.total_time / simulationResults.simulation.length)}
+                {formatLapTime(totalTime / simulationResults.length)}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Strategy Analysis */}
+        {strategyAnalysis && (
+          <div className="pt-4 border-t border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Strategy Analysis</h3>
+            <p className="text-gray-700">{strategyAnalysis}</p>
           </div>
         )}
       </div>

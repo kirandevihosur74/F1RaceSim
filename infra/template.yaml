@@ -62,7 +62,7 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-  
+
    # Explicit API Gateway resource
 
 

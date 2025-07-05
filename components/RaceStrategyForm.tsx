@@ -1,10 +1,26 @@
-import React, { useState } from 'react'
-import { Play, Plus, Trash2 } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Play, Plus, Trash2, MapPin } from 'lucide-react'
 import { useSimulationStore } from '@/store/simulationStore'
 
 const RaceStrategyForm: React.FC = () => {
-  const { strategyInput, setStrategyInput, runSimulation, isLoading } = useSimulationStore()
+  const { 
+    strategyInput, 
+    setStrategyInput, 
+    runSimulation, 
+    isLoading,
+    selectedTrack,
+    availableTracks
+  } = useSimulationStore()
+  
   const [weather, setWeather] = useState('dry')
+  const [selectedTrackDetails, setSelectedTrackDetails] = useState<any>(null)
+
+  useEffect(() => {
+    if (selectedTrack && availableTracks.length > 0) {
+      const track = availableTracks.find(t => t.id === selectedTrack)
+      setSelectedTrackDetails(track)
+    }
+  }, [selectedTrack, availableTracks])
 
   const handlePitStopChange = (index: number, value: number) => {
     const newPitStops = [...strategyInput.pit_stops]
@@ -43,9 +59,51 @@ const RaceStrategyForm: React.FC = () => {
     runSimulation(weather)
   }
 
+  const getTrackIcon = (trackId: string) => {
+    const icons: Record<string, string> = {
+      monaco: '🇲🇨',
+      silverstone: '🇬🇧',
+      spa: '🇧🇪',
+      monza: '🇮🇹',
+      suzuka: '🇯🇵'
+    }
+    return icons[trackId] || '🏁'
+  }
+
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Race Strategy Configuration</h2>
+      
+      {/* Track Information */}
+      {selectedTrackDetails && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="flex items-center space-x-3 mb-3">
+            <span className="text-2xl">{getTrackIcon(selectedTrackDetails.id)}</span>
+            <div>
+              <h3 className="font-semibold text-blue-900">{selectedTrackDetails.name}</h3>
+              <p className="text-sm text-blue-700">{selectedTrackDetails.country}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-blue-700">Circuit Length:</span>
+              <span className="ml-2 font-semibold">{selectedTrackDetails.circuit_length}km</span>
+            </div>
+            <div>
+              <span className="text-blue-700">Total Laps:</span>
+              <span className="ml-2 font-semibold">{selectedTrackDetails.total_laps}</span>
+            </div>
+            <div>
+              <span className="text-blue-700">Lap Record:</span>
+              <span className="ml-2 font-semibold">{selectedTrackDetails.lap_record}s</span>
+            </div>
+            <div>
+              <span className="text-blue-700">Weather Sensitivity:</span>
+              <span className="ml-2 font-semibold">{selectedTrackDetails.weather_sensitivity}</span>
+            </div>
+          </div>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Weather Conditions */}
@@ -102,7 +160,7 @@ const RaceStrategyForm: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  max="58"
+                  max={selectedTrackDetails?.total_laps || 58}
                   value={lap}
                   onChange={(e) => handlePitStopChange(index, parseInt(e.target.value) || 0)}
                   className="input-field flex-1"
