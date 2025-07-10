@@ -1,10 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import os
 # from dotenv import load_dotenv
+
+# --- Add slowapi for rate limiting ---
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from api.simulation import simulate_race
 from api.strategy import get_strategy_recommendation
@@ -17,6 +22,21 @@ app = FastAPI(
     description="AI-powered Formula 1 race strategy simulation and recommendations",
     version="1.0.0"
 )
+
+# --- Rate Limiter Setup ---
+# Add your admin IP(s) here
+ADMIN_IPS = {"23.121.159.68"}  # Replace with your real IP
+
+def custom_key_func(request):
+    ip = get_remote_address(request)
+    if ip in ADMIN_IPS:
+        return f"admin-{ip}"  # Exempt admin IP from rate limiting
+    return ip
+
+# Use the custom key function in the limiter
+limiter = Limiter(key_func=custom_key_func)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS middleware
 app.add_middleware(
@@ -58,14 +78,17 @@ class RecommendationResponse(BaseModel):
     recommendation: Dict[str, Any]
 
 @app.get("/")
-async def root():
+@limiter.limit("5/day")
+async def root(request: Request):
     return {"message": "F1 Race Simulator API", "version": "1.0.0"}
 
 @app.get("/health")
-async def health_check():
+@limiter.limit("5/day")
+async def health_check(request: Request):
     return {"status": "healthy", "service": "f1-race-simulator"}
 
 @app.post("/simulate-race", response_model=SimulationResponse)
+@limiter.limit("5/day")
 async def simulate_race_endpoint(request: SimulationRequest):
     """
     Simulate a Formula 1 race with given strategy parameters.
@@ -94,6 +117,7 @@ async def simulate_race_endpoint(request: SimulationRequest):
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 @app.post("/strategy-recommendation", response_model=RecommendationResponse)
+@limiter.limit("5/day")
 async def strategy_recommendation_endpoint(request: StrategyRecommendationRequest):
     """
     Get AI-generated strategy recommendations based on race scenario.
