@@ -154,9 +154,9 @@ def simulate_race(strategy, weather: str = "dry", track_id: str = "silverstone")
         driver_style = strategy.driver_style
     else:
         # Dictionary
-        pit_stops = strategy.get("pit_stops", [])
-        tires = strategy.get("tires", ["Medium"])
-        driver_style = strategy.get("driver_style", "balanced")
+    pit_stops = strategy.get("pit_stops", [])
+    tires = strategy.get("tires", ["Medium"])
+    driver_style = strategy.get("driver_style", "balanced")
     
     for lap in range(1, total_laps + 1):
         # Check if this is a pit stop lap
@@ -194,7 +194,7 @@ def simulate_race(strategy, weather: str = "dry", track_id: str = "silverstone")
             "fuel_load": round(fuel_load, 1)
         })
     
-    return results
+    return results 
 
 def simulate_multi_car_race(car_configs: List[Dict[str, Any]], 
                            weather: str = "dry", 

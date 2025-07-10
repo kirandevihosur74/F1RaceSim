@@ -15,9 +15,9 @@ describe('RaceStrategyForm', () => {
       {
         id: 'test-1',
         name: 'Test Strategy',
-        pit_stops: [15, 35],
-        tires: ['Medium', 'Hard', 'Soft'],
-        driver_style: 'balanced' as const,
+      pit_stops: [15, 35],
+      tires: ['Medium', 'Hard', 'Soft'],
+      driver_style: 'balanced' as const,
       }
     ],
     activeStrategyId: 'test-1',

@@ -93,12 +93,14 @@ const TrackSelector: React.FC = () => {
           }}
           onInit={(swiper) => {
             setTimeout(() => {
-              // @ts-ignore
-              swiper.params.navigation.prevEl = prevRef.current;
-              // @ts-ignore
-              swiper.params.navigation.nextEl = nextRef.current;
-              swiper.navigation.init();
-              swiper.navigation.update();
+              if (swiper.params && swiper.params.navigation) {
+                // @ts-ignore
+                swiper.params.navigation.prevEl = prevRef.current;
+                // @ts-ignore
+                swiper.params.navigation.nextEl = nextRef.current;
+                swiper.navigation.init();
+                swiper.navigation.update();
+              }
             });
           }}
           spaceBetween={24}

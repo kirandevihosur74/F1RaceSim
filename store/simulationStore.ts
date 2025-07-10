@@ -154,7 +154,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   strategies: [
     {
       id: 'default-1',
-      name: 'Balanced Strategy',
+      name: '', // Start with empty name
       pit_stops: [15, 35],
       tires: ['Medium', 'Hard', 'Medium'],
       driver_style: 'balanced'
@@ -182,7 +182,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   addStrategy: (strategy) => {
     const id = `strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
     set((state) => ({
-      strategies: [...state.strategies, { ...strategy, id }]
+      strategies: [...state.strategies, { ...strategy, id }],
+      activeStrategyId: id, // Set the new strategy as active
     }));
   },
   editStrategy: (id, updates) => {

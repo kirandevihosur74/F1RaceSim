@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Play, Plus, Trash2, MapPin } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
+import toast from 'react-hot-toast';
 
 const RaceStrategyForm: React.FC = () => {
   const { 
@@ -31,6 +32,12 @@ const RaceStrategyForm: React.FC = () => {
       setSelectedTrackDetails(track)
     }
   }, [selectedTrack, availableTracks])
+
+  useEffect(() => {
+    if (strategies.length > 0 && !activeStrategyId) {
+      setActiveStrategy(strategies[0].id);
+    }
+  }, [strategies, activeStrategyId, setActiveStrategy]);
 
   const handlePitStopChange = (index: number, value: number) => {
     if (!localStrategy) return;
@@ -74,9 +81,11 @@ const RaceStrategyForm: React.FC = () => {
     if (e) e.preventDefault();
     if (!strategy || !localStrategy) return;
     if (strategy.id) {
-      editStrategy(strategy.id, localStrategy)
+      editStrategy(strategy.id, { ...localStrategy, id: strategy.id })
+      toast.success('Strategy saved!')
     } else {
       addStrategy(localStrategy)
+      toast.success('Strategy added!')
     }
   }
 
@@ -84,6 +93,7 @@ const RaceStrategyForm: React.FC = () => {
     e.preventDefault()
     handleSave()
     runSimulation(weather)
+    toast('Simulation started...', { icon: '🏁' })
   }
 
   const handleNewStrategy = () => {
@@ -95,6 +105,12 @@ const RaceStrategyForm: React.FC = () => {
     }
     addStrategy(newStrategy)
     setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
+  }
+
+  const handleDelete = (index: number) => {
+    if (!localStrategy) return;
+    removePitStop(index)
+    toast.error('Pit stop removed.')
   }
 
   const getTrackIcon = (trackId: string) => {
@@ -127,13 +143,7 @@ const RaceStrategyForm: React.FC = () => {
     <div className="card">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Race Strategy Configuration</h2>
-        <button
-          onClick={handleNewStrategy}
-          className="btn-secondary flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Strategy</span>
-        </button>
+        {/* Removed top-right New Strategy button */}
       </div>
 
       {/* Strategy Name */}
@@ -150,43 +160,12 @@ const RaceStrategyForm: React.FC = () => {
         />
       </div>
 
-      {/* Current Strategy Indicator */}
-      {strategy && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            Editing: <span className="font-semibold">{strategy.name}</span>
-          </p>
-        </div>
-      )}
+      {/* Removed Editing indicator for cleaner UI */}
       
       {/* Track Information */}
       {selectedTrackDetails && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center space-x-3 mb-3">
-            <span className="text-2xl">{getTrackIcon(selectedTrackDetails.id)}</span>
-            <div>
-              <h3 className="font-semibold text-blue-900">{selectedTrackDetails.name}</h3>
-              <p className="text-sm text-blue-700">{selectedTrackDetails.country}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-blue-700">Circuit Length:</span>
-              <span className="ml-2 font-semibold">{selectedTrackDetails.circuit_length}km</span>
-            </div>
-            <div>
-              <span className="text-blue-700">Total Laps:</span>
-              <span className="ml-2 font-semibold">{selectedTrackDetails.total_laps}</span>
-            </div>
-            <div>
-              <span className="text-blue-700">Lap Record:</span>
-              <span className="ml-2 font-semibold">{selectedTrackDetails.lap_record}s</span>
-            </div>
-            <div>
-              <span className="text-blue-700">Weather Sensitivity:</span>
-              <span className="ml-2 font-semibold">{selectedTrackDetails.weather_sensitivity}</span>
-            </div>
-          </div>
+        <div className="mb-4 text-sm text-blue-900 font-semibold">
+          Selected Track: {selectedTrackDetails.name}
         </div>
       )}
       
@@ -253,7 +232,7 @@ const RaceStrategyForm: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => removePitStop(index)}
+                  onClick={() => handleDelete(index)}
                   className="p-2 text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
