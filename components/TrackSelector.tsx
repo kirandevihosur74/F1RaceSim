@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef } from 'react'
 import { useSimulationStore } from '../store/simulationStore'
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -91,12 +92,14 @@ const TrackSelector: React.FC = () => {
             nextEl: nextRef.current,
           }}
           onInit={(swiper) => {
-            // @ts-ignore
-            swiper.params.navigation.prevEl = prevRef.current;
-            // @ts-ignore
-            swiper.params.navigation.nextEl = nextRef.current;
-            swiper.navigation.init();
-            swiper.navigation.update();
+            setTimeout(() => {
+              // @ts-ignore
+              swiper.params.navigation.prevEl = prevRef.current;
+              // @ts-ignore
+              swiper.params.navigation.nextEl = nextRef.current;
+              swiper.navigation.init();
+              swiper.navigation.update();
+            });
           }}
           spaceBetween={24}
           slidesPerView={3}
