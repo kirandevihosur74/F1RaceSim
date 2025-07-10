@@ -82,23 +82,6 @@ const StrategyRecommendations: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Strategy Tips */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <TrendingUp className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Strategy Tips</h3>
-                <ul className="text-gray-700 text-sm space-y-1">
-                  <li>• Consider tire degradation patterns for optimal pit timing</li>
-                  <li>• Balance aggressive driving with tire conservation</li>
-                  <li>• Monitor weather conditions for tire compound selection</li>
-                  <li>• Factor in track position and traffic management</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          
           {/* Refresh Recommendation Button */}
           <div className="text-center mt-4">
             <button

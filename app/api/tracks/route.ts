@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { F1APIService } from '@/lib/f1-api'
+import { F1APIService } from '../../../lib/f1-api'
 
 export async function GET(request: NextRequest) {
   try {

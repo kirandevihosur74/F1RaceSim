@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { F1APIService } from '@/lib/f1-api'
+import { F1APIService } from '../lib/f1-api'
 
 export interface StrategyInput {
   pit_stops: number[]
