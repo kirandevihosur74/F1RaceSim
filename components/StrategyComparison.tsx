@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target, Plus } from 'lucide-react'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 
 const StrategyComparison: React.FC = () => {
   const { 

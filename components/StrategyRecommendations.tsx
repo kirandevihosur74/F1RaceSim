@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Brain, Lightbulb, TrendingUp } from 'lucide-react'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 
 const StrategyRecommendations: React.FC = () => {
   const { 

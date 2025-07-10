@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css';

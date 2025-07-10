@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 
 const WeatherForecast: React.FC = () => {
   const {

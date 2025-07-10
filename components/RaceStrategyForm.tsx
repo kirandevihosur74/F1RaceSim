@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Play, Plus, Trash2, MapPin } from 'lucide-react'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 
 const RaceStrategyForm: React.FC = () => {
   const { 

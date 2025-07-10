@@ -1,6 +1,6 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
-import { useSimulationStore } from '@/store/simulationStore'
+import { useSimulationStore } from '../store/simulationStore'
 
 // Dynamically import ApexCharts to avoid SSR issues
 const ApexCharts = dynamic(() => import('react-apexcharts'), { ssr: false })

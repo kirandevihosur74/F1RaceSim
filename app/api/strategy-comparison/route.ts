@@ -342,7 +342,7 @@ function generateOptimizationSuggestions(strategies: any[]) {
     suggestions.push("Consider more conservative driver style to reduce risk")
   }
   
-  return [...new Set(suggestions)] // Remove duplicates
+  return Array.from(new Set(suggestions)) // Remove duplicates
 }
 
 function analyzeRisks(strategies: any[]) {

@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import Header from '@/components/Header'
-import RaceStrategyForm from '@/components/RaceStrategyForm'
-import SimulationResultsChart from '@/components/SimulationResultsChart'
-import StrategyRecommendations from '@/components/StrategyRecommendations'
-import TrackSelector from '@/components/TrackSelector'
-import WeatherForecast from '@/components/WeatherForecast'
-import StrategyComparison from '@/components/StrategyComparison'
-import { useSimulationStore } from '@/store/simulationStore'
+import Header from '../components/Header'
+import RaceStrategyForm from '../components/RaceStrategyForm'
+import SimulationResultsChart from '../components/SimulationResultsChart'
+import StrategyRecommendations from '../components/StrategyRecommendations'
+import TrackSelector from '../components/TrackSelector'
+import WeatherForecast from '../components/WeatherForecast'
+import StrategyComparison from '../components/StrategyComparison'
+import { useSimulationStore } from '../store/simulationStore'
 
 export default function Home() {
   const {
