@@ -2,6 +2,37 @@
 
 An AI-powered Formula 1 race strategy simulator for fans and strategists. Plan, simulate, and optimize F1 race strategies with real data, advanced weather, and AI recommendations.
 
+**Live Demo:** [https://f1-race-sim.vercel.app](https://f1-race-sim.vercel.app)
+
+---
+
+## 🖥️ Demo: How to Use
+
+1. **Select a Track**
+   - Use the carousel to pick a Formula 1 circuit.
+2. **Configure Your Strategy**
+   - Set pit stop laps, choose tire compounds for each stint, and select a driver style (Conservative, Balanced, Aggressive).
+   - You can add or remove pit stops and tires as needed.
+   - Give your strategy a name.
+3. **Save Your Strategy**
+   - Click "Save Strategy" to store your configuration for comparison or later use.
+4. **Run Simulation**
+   - Click "Run Simulation" to simulate the race with your chosen strategy.
+   - View interactive charts showing lap times, tire wear, and race progression.
+5. **Get AI Strategy Recommendation**
+   - Click "Get AI Strategy Recommendation" to receive expert advice powered by Google Gemini AI.
+6. **Compare Strategies**
+   - Add multiple strategies and use the comparison tool to analyze their performance, risks, and optimization suggestions.
+7. **Check Weather Forecast**
+   - See real or simulated weather data and how it impacts your strategy.
+8. **User Feedback**
+   - Toast notifications will inform you of successful actions, errors, or rate limits.
+  
+**P.S. There is a rate limit on using APIs. If you hit the limit, please try again after sometime or contact @kirandevihosur74@gmail.com** 
+
+---
+
+
 ## 🏎️ Features
 
 ### Core Simulation
