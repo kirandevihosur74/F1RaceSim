@@ -16,16 +16,7 @@ const Header: React.FC = () => {
             </div>
           </div>
           
-          <nav className="flex items-center space-x-4">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-f1-red transition-colors">
-              <BarChart3 className="w-5 h-5" />
-              <span>Analytics</span>
-            </button>
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-f1-red transition-colors">
-              <Settings className="w-5 h-5" />
-              <span>Settings</span>
-            </button>
-          </nav>
+          {/* Remove the Analytics and Settings buttons */}
         </div>
       </div>
     </header>

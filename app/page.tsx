@@ -82,27 +82,17 @@ export default function Home() {
         </div>
       </main>
 
-      {/* API Status Footer */}
+      {/* Custom Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <div className="flex items-center space-x-4">
-              <span>F1 Race Strategy Simulator</span>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isUsingAPIData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                <span>{isUsingAPIData ? 'Using API Data' : 'Using Local Data'}</span>
-              </div>
+          <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
+            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+              <span className="font-semibold text-f1-red">F1 Race Sim: Smarter Strategy, Better Racing</span>
+              <span className="italic text-gray-500">Built for F1 fans & data-driven strategists</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <span>Powered by Ergast API & OpenWeatherMap</span>
-              <a 
-                href="https://ergast.com/mrd/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                Data Sources
-              </a>
+            <div className="flex items-center gap-4">
+              <a href="https://github.com/kirandevihosur74/F1RaceSim" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">View on GitHub</a>
+              <span className="text-gray-400">&copy; {new Date().getFullYear()} F1 Race Sim</span>
             </div>
           </div>
         </div>

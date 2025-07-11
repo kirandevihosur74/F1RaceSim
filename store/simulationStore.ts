@@ -268,7 +268,14 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
       if (response.status === 429) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
+        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
+        if (
+          msg.includes('Rate limit exceeded') &&
+          msg.includes('per 1 day')
+        ) {
+          msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
+        }
+        throw new Error(msg)
       }
 
       if (!response.ok) {
@@ -299,6 +306,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         body: JSON.stringify({ scenario }),
       })
 
+      if (response.status === 429) {
+        const errorData = await response.json()
+        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.';
+        if (
+          msg.includes('Rate limit exceeded') &&
+          msg.includes('per 1 day')
+        ) {
+          msg = 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.';
+        }
+        throw new Error(msg)
+      }
+
       if (!response.ok) {
         throw new Error('Failed to get strategy recommendation')
       }
@@ -311,6 +330,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Strategy recommendation error:', error)
       set({ isLoading: false })
+      throw error // Re-throw so the component can handle it
     }
   },
 

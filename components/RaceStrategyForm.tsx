@@ -91,16 +91,26 @@ const RaceStrategyForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    handleSave()
+    // Save strategy without showing toast
+    if (!strategy || !localStrategy) return;
+    if (strategy.id) {
+      editStrategy(strategy.id, { ...localStrategy, id: strategy.id })
+    } else {
+      addStrategy(localStrategy)
+    }
+    
     try {
       await runSimulation(weather)
       toast('Simulation started...', { icon: '🏁' })
     } catch (err: any) {
-      if (err?.message?.includes('Rate limit exceeded') || err?.message?.includes('429')) {
-        toast.error(err.message || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
-      } else {
-        toast.error('An error occurred while running the simulation.')
+      let msg = err.message || '';
+      if (
+        msg.includes('Rate limit exceeded') &&
+        msg.includes('per 1 day')
+      ) {
+        msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
       }
+      toast.error(msg || 'An error occurred while running the simulation.');
     }
   }
 
