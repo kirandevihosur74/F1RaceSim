@@ -76,9 +76,7 @@ python main.py
 ## 🌐 API Integration
 
 - **Ergast API**: F1 data for all circuits
-- **OpenWeatherMap API**: Real-time weather (optional)
-- **Local Data**: 5 major circuits
-- **Hybrid System**: Uses local data first, falls back to API
+- **OpenWeatherMap API**: Real-time weather
 
 ## 🏁 Usage
 
@@ -105,8 +103,6 @@ python main.py
 - **Google Gemini AI**
 - **AWS Lambda** (serverless)
 - **Rate Limiting** (slowapi)
-- **Admin Exemption** for rate limits
-
 ### Data Flow
 ```
 Frontend → Next.js API Routes → FastAPI Backend (AWS Lambda) → Gemini AI & External APIs
@@ -152,7 +148,6 @@ python -m pytest
 ```
 
 ## 📈 Performance & UX
-- **Hybrid Data Loading**
 - **API Rate Limiting**
 - **Graceful Error Handling**
 - **Modern, Responsive UI**
@@ -164,14 +159,3 @@ python -m pytest
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## 📄 License
-MIT License
-
-## 🌟 Mission & Credits
-- **Mission:** F1 Race Sim: Smarter Strategy, Better Racing
-- **About:** Built for F1 fans & data-driven strategists
-- **GitHub:** [View on GitHub](https://github.com/kirandevihosur74/F1RaceSim)
-- **AI:** Powered by Google Gemini
-- **Data:** Ergast API, OpenWeatherMap
-- **© {CURRENT_YEAR} F1 Race Sim 
