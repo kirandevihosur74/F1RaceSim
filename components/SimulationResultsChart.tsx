@@ -31,6 +31,9 @@ const SimulationResultsChart: React.FC = () => {
     availableTracks,
   } = useSimulationStore()
 
+  // Detect dark mode
+  const isDark = typeof window !== 'undefined' && (window.document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches)
+
   // Get active strategy for context
   const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
   const track = availableTracks.find(t => t.id === selectedTrack)
@@ -39,7 +42,7 @@ const SimulationResultsChart: React.FC = () => {
   if (!simulationResults || simulationResults.length === 0) {
     return (
       <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Simulation Results</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>
         <div className="text-center py-12 text-gray-500">
           <p>Run a simulation to see results</p>
         </div>
@@ -57,37 +60,47 @@ const SimulationResultsChart: React.FC = () => {
   const strategyName = strategy?.name
 
   // ApexCharts options
+  const axisColor = isDark ? '#cbd5e1' : '#374151';
+  const gridColor = isDark ? '#334155' : '#e5e7eb';
+  const legendColor = isDark ? '#cbd5e1' : '#374151';
   const options = {
     chart: {
       id: 'f1-sim-results',
       toolbar: { show: false },
       zoom: { enabled: true },
       fontFamily: 'inherit',
+      foreColor: axisColor,
     },
     stroke: { width: [3, 2], curve: 'smooth' as const },
     colors: ['#E10600', '#1E3A8A'],
     xaxis: {
       categories: laps,
-      title: { text: 'Lap', style: { fontWeight: 600, fontSize: '14px' } },
-      labels: { style: { fontSize: '12px' } },
+      title: { text: 'Lap', style: { fontWeight: 600, fontSize: '14px', color: axisColor } },
+      labels: { style: { fontSize: '12px', color: axisColor } },
+      axisBorder: { color: gridColor },
+      axisTicks: { color: gridColor },
     },
     yaxis: [
       {
-        title: { text: 'Lap Time (mm:ss.s)', style: { fontWeight: 600, fontSize: '14px' } },
+        title: { text: 'Lap Time (mm:ss.s)', style: { fontWeight: 600, fontSize: '14px', color: axisColor } },
         labels: {
           formatter: (val: number) => formatLapTime(val),
-          style: { fontSize: '12px' },
+          style: { fontSize: '12px', color: axisColor },
         },
+        axisBorder: { color: gridColor },
+        axisTicks: { color: gridColor },
       },
       {
         opposite: true,
-        title: { text: 'Tire Wear (%)', style: { fontWeight: 600, fontSize: '14px' } },
+        title: { text: 'Tire Wear (%)', style: { fontWeight: 600, fontSize: '14px', color: axisColor } },
         labels: {
           formatter: (val: number) => `${val.toFixed(1)}%`,
-          style: { fontSize: '12px' },
+          style: { fontSize: '12px', color: axisColor },
         },
         min: 0,
         max: 100,
+        axisBorder: { color: gridColor },
+        axisTicks: { color: gridColor },
       },
     ],
     tooltip: {
@@ -110,7 +123,7 @@ const SimulationResultsChart: React.FC = () => {
       position: 'top' as const,
       fontSize: '14px',
       fontWeight: 500,
-      labels: { colors: '#374151' },
+      labels: { colors: legendColor },
       // Use default markers
     },
     annotations: {
@@ -123,7 +136,7 @@ const SimulationResultsChart: React.FC = () => {
         },
       })),
     },
-    grid: { borderColor: '#e5e7eb', strokeDashArray: 4 },
+    grid: { borderColor: gridColor, strokeDashArray: 4 },
     responsive: [
       {
         breakpoint: 640,
@@ -151,9 +164,9 @@ const SimulationResultsChart: React.FC = () => {
 
   return (
     <div className="card">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Simulation Results</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>
       {/* Context Row */}
-      <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-700 items-center">
+      <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-700 dark:text-gray-300 items-center">
         {track && <span><b>Track:</b> {track.name}</span>}
         <span><b>Weather:</b> {weather}</span>
         {tireSequence && <span><b>Tires:</b> {tireSequence}</span>}
@@ -170,15 +183,15 @@ const SimulationResultsChart: React.FC = () => {
       </div>
       {/* Summary Statistics */}
       {totalTime && (
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center">
-            <p className="text-sm text-gray-600">Total Race Time</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Total Race Time</p>
             <p className="text-xl font-bold text-f1-red">
               {formatTotalTime(totalTime)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-gray-600">Average Lap Time</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Average Lap Time</p>
             <p className="text-xl font-bold text-f1-blue">
               {formatLapTime(totalTime / simulationResults.length)}
             </p>
@@ -187,9 +200,9 @@ const SimulationResultsChart: React.FC = () => {
       )}
       {/* Strategy Analysis */}
       {strategyAnalysis && (
-        <div className="pt-4 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Strategy Analysis</h3>
-          <p className="text-gray-700">{strategyAnalysis}</p>
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Strategy Analysis</h3>
+          <p className="text-gray-700 dark:text-gray-300">{strategyAnalysis}</p>
         </div>
       )}
     </div>

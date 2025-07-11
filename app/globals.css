@@ -10,6 +10,9 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+  body.dark {
+    @apply bg-gray-900 text-gray-100;
+  }
 }
 
 @layer components {
@@ -24,8 +27,14 @@
   .card {
     @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
   }
+  .dark .card {
+    @apply bg-gray-800 border-gray-700 text-gray-100;
+  }
   
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-f1-red focus:border-transparent;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-f1-red focus:border-transparent bg-white text-gray-900 placeholder-gray-500 transition;
+  }
+  .dark .input-field {
+    @apply bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:ring-f1-red focus:border-f1-red;
   }
 } 

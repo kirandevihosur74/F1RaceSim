@@ -33,7 +33,7 @@ export default function Home() {
   }, [selectedTrack, loadWeatherForecast])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
       {/* API Status Banner */}
@@ -83,16 +83,16 @@ export default function Home() {
       </main>
 
       {/* Custom Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
+          <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-2">
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
               <span className="font-semibold text-f1-red">F1 Race Sim: Smarter Strategy, Better Racing</span>
-              <span className="italic text-gray-500">Built for F1 fans & data-driven strategists</span>
+              <span className="italic text-gray-500 dark:text-gray-400">Built for F1 fans & data-driven strategists</span>
             </div>
             <div className="flex items-center gap-4">
-              <a href="https://github.com/kirandevihosur74/F1RaceSim" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">View on GitHub</a>
-              <span className="text-gray-400">&copy; {new Date().getFullYear()} F1 Race Sim</span>
+              <a href="https://github.com/kirandevihosur74/F1RaceSim" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline">View on GitHub</a>
+              <span className="text-gray-400 dark:text-gray-500">&copy; {new Date().getFullYear()} F1 Race Sim</span>
             </div>
           </div>
         </div>

@@ -50,7 +50,7 @@ const StrategyRecommendations: React.FC = () => {
     <div className="card">
       <div className="flex items-center space-x-2 mb-6">
         <Brain className="w-6 h-6 text-f1-blue" />
-        <h2 className="text-xl font-bold text-gray-900">AI Strategy Recommendations</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Strategy Recommendations</h2>
       </div>
 
       {isLoading ? (

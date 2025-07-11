@@ -34,7 +34,7 @@ const StrategyComparison: React.FC = () => {
     return (
       <div className="card">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Strategy Comparison</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Strategy Comparison</h2>
           <button
             onClick={() => {
               const newStrategy = {
@@ -79,33 +79,33 @@ const StrategyComparison: React.FC = () => {
             {strategies.map((strategy) => (
               <div key={strategy.id} className={`p-4 border rounded-lg flex flex-col gap-2 ${
                 strategy.id === activeStrategyId 
-                  ? 'border-blue-300 bg-blue-50' 
-                  : 'border-gray-200'
+                  ? 'border-blue-300 bg-blue-50 dark:bg-[#232b39]' 
+                  : 'border-gray-200 dark:border-gray-700 dark:bg-gray-800'
               }`}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-gray-900">{strategy.name}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{strategy.name}</h3>
                     {strategy.id === activeStrategyId && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Editing</span>
+                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Editing</span>
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setActiveStrategy(strategy.id)} className="text-f1-blue hover:underline text-xs">Edit</button>
-                    <button onClick={() => deleteStrategy(strategy.id)} className="text-red-600 hover:underline text-xs">Delete</button>
+                    <button onClick={() => setActiveStrategy(strategy.id)} className="text-f1-blue hover:underline text-xs dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
+                    <button onClick={() => deleteStrategy(strategy.id)} className="text-red-600 hover:underline text-xs dark:text-red-400 dark:hover:text-red-300">Delete</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Pit Stops:</span>
-                    <span className="ml-2 font-medium">{strategy.pit_stops.join(', ')}</span>
+                    <span className="text-gray-600 dark:text-gray-300">Pit Stops:</span>
+                    <span className="ml-2 font-medium dark:text-gray-100">{strategy.pit_stops.join(', ')}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Tires:</span>
-                    <span className="ml-2 font-medium">{strategy.tires.join(' → ')}</span>
+                    <span className="text-gray-600 dark:text-gray-300">Tires:</span>
+                    <span className="ml-2 font-medium dark:text-gray-100">{strategy.tires.join(' → ')}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Style:</span>
-                    <span className="ml-2 font-medium capitalize">{strategy.driver_style}</span>
+                    <span className="text-gray-600 dark:text-gray-300">Style:</span>
+                    <span className="ml-2 font-medium capitalize dark:text-gray-100">{strategy.driver_style}</span>
                   </div>
                 </div>
               </div>
@@ -131,54 +131,52 @@ const StrategyComparison: React.FC = () => {
 
   return (
     <div className="card">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Strategy Comparison Results</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Strategy Comparison Results</h2>
       
       {/* Winner */}
-      <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg mb-6">
+      <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/40 dark:to-yellow-900/40 p-4 rounded-lg mb-6">
         <div className="flex items-center space-x-3">
-          <Trophy className="w-6 h-6 text-yellow-600" />
+          <Trophy className="w-6 h-6 text-yellow-600 dark:text-yellow-200" />
           <div>
-            <h3 className="font-bold text-yellow-900">Winner: {comparisonResults.winner.name}</h3>
-            <p className="text-yellow-700">Total Time: {comparisonResults.winner.total_time.toFixed(1)}s</p>
+            <h3 className="font-bold text-yellow-900 dark:text-yellow-200">Winner: {comparisonResults.winner.name}</h3>
+            <p className="text-yellow-700 dark:text-yellow-100">Total Time: {comparisonResults.winner.total_time.toFixed(1)}s</p>
           </div>
         </div>
       </div>
 
       {/* Strategy Comparison Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-2">Strategy</th>
-              <th className="text-center py-2">Total Time</th>
-              <th className="text-center py-2">Best Lap</th>
-              <th className="text-center py-2">Avg Lap</th>
-              <th className="text-center py-2">Risk Level</th>
-              <th className="text-center py-2">Tire Wear</th>
+        <table className="w-full dark:bg-gray-800">
+          <thead className="dark:bg-gray-800">
+            <tr className="border-b border-gray-200 dark:border-gray-700">
+              <th className="text-left py-2 text-gray-900 dark:text-gray-100">Strategy</th>
+              <th className="text-center py-2 text-gray-900 dark:text-gray-100">Total Time</th>
+              <th className="text-center py-2 text-gray-900 dark:text-gray-100">Best Lap</th>
+              <th className="text-center py-2 text-gray-900 dark:text-gray-100">Avg Lap</th>
+              <th className="text-center py-2 text-gray-900 dark:text-gray-100">Risk Level</th>
+              <th className="text-center py-2 text-gray-900 dark:text-gray-100">Tire Wear</th>
             </tr>
           </thead>
           <tbody>
             {comparisonResults.strategies.map((strategy, index) => (
-              <tr key={index} className="border-b border-gray-100">
+              <tr key={index} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="py-3">
-                  <div className="font-medium">{strategy.name}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{strategy.name}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
                     {strategy.tires.join(' → ')} | {strategy.pit_stops.join(', ')}
                   </div>
                 </td>
-                <td className="text-center py-3 font-mono">
+                <td className="text-center py-3 font-mono text-gray-900 dark:text-gray-100">
                   {strategy.total_time.toFixed(1)}s
                 </td>
-                <td className="text-center py-3 font-mono">
+                <td className="text-center py-3 font-mono text-gray-900 dark:text-gray-100">
                   {strategy.best_lap.toFixed(1)}s
                 </td>
-                <td className="text-center py-3 font-mono">
+                <td className="text-center py-3 font-mono text-gray-900 dark:text-gray-100">
                   {strategy.average_lap.toFixed(1)}s
                 </td>
                 <td className="text-center py-3">
-                  <span className={`font-medium ${getRiskColor(strategy.risk_score)}`}>
-                    {getRiskLevel(strategy.risk_score)}
-                  </span>
+                  <span className={`font-medium ${getRiskColor(strategy.risk_score)}`}>{getRiskLevel(strategy.risk_score)}</span>
                 </td>
                 <td className="text-center py-3">
                   <span className={`text-sm ${
@@ -239,32 +237,32 @@ const StrategyComparison: React.FC = () => {
 
       {/* Risk Analysis */}
       <div className="mt-6">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+        <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2 dark:text-gray-100">
           <Target className="w-5 h-5 text-purple-500" />
           <span>Risk Analysis</span>
         </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-red-50 p-3 rounded-lg">
-            <div className="text-sm text-red-700">High Risk</div>
-            <div className="text-lg font-bold text-red-900">
+          <div className="bg-red-50 dark:bg-red-900/40 p-3 rounded-lg">
+            <div className="text-sm text-red-700 dark:text-red-200">High Risk</div>
+            <div className="text-lg font-bold text-red-900 dark:text-red-100">
               {comparisonResults.risk_analysis.high_risk_strategies}
             </div>
           </div>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <div className="text-sm text-yellow-700">Medium Risk</div>
-            <div className="text-lg font-bold text-yellow-900">
+          <div className="bg-yellow-50 dark:bg-yellow-900/40 p-3 rounded-lg">
+            <div className="text-sm text-yellow-700 dark:text-yellow-200">Medium Risk</div>
+            <div className="text-lg font-bold text-yellow-900 dark:text-yellow-100">
               {comparisonResults.risk_analysis.medium_risk_strategies}
             </div>
           </div>
-          <div className="bg-green-50 p-3 rounded-lg">
-            <div className="text-sm text-green-700">Low Risk</div>
-            <div className="text-lg font-bold text-green-900">
+          <div className="bg-green-50 dark:bg-green-900/40 p-3 rounded-lg">
+            <div className="text-sm text-green-700 dark:text-green-200">Low Risk</div>
+            <div className="text-lg font-bold text-green-900 dark:text-green-100">
               {comparisonResults.risk_analysis.low_risk_strategies}
             </div>
           </div>
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <div className="text-sm text-blue-700">Avg Risk</div>
-            <div className="text-lg font-bold text-blue-900">
+          <div className="bg-blue-50 dark:bg-blue-900/40 p-3 rounded-lg">
+            <div className="text-sm text-blue-700 dark:text-blue-200">Avg Risk</div>
+            <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
               {(comparisonResults.risk_analysis.average_risk * 100).toFixed(0)}%
             </div>
           </div>

@@ -502,14 +502,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 // Helper functions for weather forecast generation
 function generateWeatherForecastFromRealData(realWeather: any, trackId: string): WeatherForecast[] {
   const forecast: WeatherForecast[] = []
-  const totalLaps = 50 // Default, would get from track data
-  
+  // Dynamically get total laps from availableTracks
+  const store = require('./simulationStore');
+  const availableTracks = store.useSimulationStore.getState().availableTracks;
+  const track = availableTracks.find((t: any) => t.id === trackId);
+  const totalLaps = track?.total_laps || 50;
+
   for (let lap = 1; lap <= totalLaps; lap++) {
     // Use real weather as base and add some variation
     const variation = (Math.random() - 0.5) * 0.2
     const temperature = realWeather.temperature + variation * 5
     const humidity = Math.max(30, Math.min(90, realWeather.humidity + variation * 10))
-    
+
     forecast.push({
       lap,
       condition: realWeather.condition,
@@ -521,14 +525,18 @@ function generateWeatherForecastFromRealData(realWeather: any, trackId: string):
       grip_level: realWeather.grip_level
     })
   }
-  
+
   return forecast
 }
 
 function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
   const forecast: WeatherForecast[] = []
-  const totalLaps = 50 // Default
-  
+  // Dynamically get total laps from availableTracks
+  const store = require('./simulationStore');
+  const availableTracks = store.useSimulationStore.getState().availableTracks;
+  const track = availableTracks.find((t: any) => t.id === trackId);
+  const totalLaps = track?.total_laps || 50;
+
   // Track-specific weather patterns
   const weatherPatterns: Record<string, any> = {
     monaco: { rain_probability: 0.3, temperature_variation: 5.0 },
@@ -537,23 +545,23 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
     monza: { rain_probability: 0.2, temperature_variation: 6.0 },
     suzuka: { rain_probability: 0.4, temperature_variation: 7.0 }
   }
-  
+
   const pattern = weatherPatterns[trackId] || { rain_probability: 0.3, temperature_variation: 5.0 }
-  
+
   let currentCondition = "dry"
   let currentTemperature = 25.0
   let currentHumidity = 60.0
-  
+
   for (let lap = 1; lap <= totalLaps; lap++) {
     // Temperature variation
     const temperatureChange = (Math.random() - 0.5) * pattern.temperature_variation
     currentTemperature += temperatureChange
     const trackTemperature = currentTemperature + 10.0 + (Math.random() - 0.5) * 4
-    
+
     // Humidity changes
     currentHumidity += (Math.random() - 0.5) * 10
     currentHumidity = Math.max(30, Math.min(90, currentHumidity))
-    
+
     // Rain probability
     let rainProbability = pattern.rain_probability
     if (currentHumidity > 80 && currentTemperature < 20) {
@@ -561,7 +569,7 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
     } else if (currentHumidity < 50 && currentTemperature > 25) {
       rainProbability = Math.max(0.05, rainProbability - 0.05)
     }
-    
+
     // Simulate weather changes
     if (rainProbability > 0.6 && Math.random() < 0.1) {
       currentCondition = "wet"
@@ -570,7 +578,7 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
     } else if (currentCondition === "intermediate" && rainProbability < 0.2) {
       currentCondition = "dry"
     }
-    
+
     forecast.push({
       lap,
       condition: currentCondition,
@@ -582,6 +590,6 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
       grip_level: currentCondition === "dry" ? 1.0 : currentCondition === "intermediate" ? 0.85 : 0.7
     })
   }
-  
+
   return forecast
 } 

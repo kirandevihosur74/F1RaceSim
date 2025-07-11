@@ -160,13 +160,13 @@ const RaceStrategyForm: React.FC = () => {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Race Strategy Configuration</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Race Strategy Configuration</h2>
         {/* Removed top-right New Strategy button */}
       </div>
 
       {/* Strategy Name */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Strategy Name
         </label>
         <input
@@ -182,15 +182,15 @@ const RaceStrategyForm: React.FC = () => {
       
       {/* Track Information */}
       {selectedTrackDetails && (
-        <div className="mb-4 text-sm text-blue-900 font-semibold">
-          Selected Track: {selectedTrackDetails.name}
+        <div className="mb-4 text-sm text-blue-900 dark:text-blue-300 font-semibold">
+          Selected Track: <span className="dark:text-gray-100">{selectedTrackDetails.name}</span>
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Weather Conditions */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Weather Conditions
           </label>
           <select
@@ -206,7 +206,7 @@ const RaceStrategyForm: React.FC = () => {
 
         {/* Driver Style */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Driver Style
           </label>
           <select
@@ -223,7 +223,7 @@ const RaceStrategyForm: React.FC = () => {
         {/* Pit Stops */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Pit Stop Laps
             </label>
             <button
@@ -263,7 +263,7 @@ const RaceStrategyForm: React.FC = () => {
         {/* Tire Strategy */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Tire Compounds
             </label>
             <button

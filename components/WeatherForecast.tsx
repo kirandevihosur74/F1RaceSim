@@ -55,9 +55,9 @@ const WeatherForecast: React.FC = () => {
 
   if (!selectedTrack) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Weather Forecast</h3>
-        <div className="text-center text-gray-500 py-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Weather Forecast</h3>
+        <div className="text-center text-gray-500 dark:text-gray-300 py-8">
           Please select a track to view weather forecast
         </div>
       </div>
@@ -65,14 +65,14 @@ const WeatherForecast: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Weather Forecast</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Weather Forecast</h3>
         
         {/* Data Source Indicator */}
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isUsingAPIData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-gray-600 dark:text-gray-300">
             {isUsingAPIData ? 'Real Weather' : 'Simulated'}
           </span>
         </div>
@@ -90,25 +90,25 @@ const WeatherForecast: React.FC = () => {
       {!isLoading && weatherForecast.length > 0 && (
         <div className="space-y-4">
           {/* Current Weather Summary */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getWeatherIcon(weatherForecast[0].condition)}
                 <div>
-                  <h4 className="font-semibold text-gray-800 capitalize">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-100 capitalize">
                     {weatherForecast[0].condition} Conditions
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     Lap {weatherForecast[0].lap} - {weatherForecast.length} laps forecast
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-800">
+                <div className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                   {weatherForecast[0].temperature}°C
                 </div>
-                <div className="text-sm text-gray-600">
-                  Track: {weatherForecast[0].track_temperature}°C
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Track: {weatherForecast[0].track_temperature.toFixed(2)}°C
                 </div>
               </div>
             </div>
@@ -116,26 +116,26 @@ const WeatherForecast: React.FC = () => {
 
           {/* Weather Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600">Humidity</div>
-              <div className="text-lg font-semibold text-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">Humidity</div>
+              <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 {weatherForecast[0].humidity}%
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600">Wind Speed</div>
-              <div className="text-lg font-semibold text-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">Wind Speed</div>
+              <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 {weatherForecast[0].wind_speed.toFixed(2)} km/h
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600">Rain Probability</div>
-              <div className="text-lg font-semibold text-gray-800">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">Rain Probability</div>
+              <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 {Math.round(weatherForecast[0].rain_probability * 100)}%
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <div className="text-sm text-gray-600">Grip Level</div>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">Grip Level</div>
               <div className={`text-lg font-semibold ${getGripLevelColor(weatherForecast[0].grip_level)}`}>
                 {getGripLevelText(weatherForecast[0].grip_level)}
               </div>
@@ -143,48 +143,43 @@ const WeatherForecast: React.FC = () => {
           </div>
 
           {/* Weather Timeline */}
-          <div>
-            <h4 className="font-medium text-gray-800 mb-3">Weather Timeline</h4>
+          <div className="bg-blue-50 dark:bg-gray-900 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-3">Weather Timeline</h4>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {weatherForecast.slice(0, 20).map((forecast, index) => (
+              {weatherForecast.map((forecast, index) => (
                 <div
                   key={forecast.lap}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="text-sm font-medium text-gray-600">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       Lap {forecast.lap}
                     </div>
                     {getWeatherIcon(forecast.condition)}
-                    <div className="text-sm text-gray-800 capitalize">
+                    <div className="text-sm text-gray-800 dark:text-gray-100 capitalize">
                       {forecast.condition}
                     </div>
                   </div>
                   <div className="flex items-center space-x-4 text-sm">
-                    <div className="text-gray-600">
+                    <div className="text-gray-600 dark:text-gray-300">
                       {forecast.temperature}°C
                     </div>
-                    <div className="text-gray-600">
+                    <div className="text-gray-600 dark:text-gray-300">
                       {forecast.humidity}%
                     </div>
-                    <div className={`font-medium ${getGripLevelColor(forecast.grip_level)}`}>
+                    <div className={`font-medium ${getGripLevelColor(forecast.grip_level)}`}> 
                       {getGripLevelText(forecast.grip_level)}
                     </div>
                   </div>
                 </div>
               ))}
-              {weatherForecast.length > 20 && (
-                <div className="text-center text-sm text-gray-500 py-2">
-                  +{weatherForecast.length - 20} more laps...
-                </div>
-              )}
             </div>
           </div>
 
           {/* Weather Impact Analysis */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="font-medium text-blue-800 mb-2">Weather Impact Analysis</h4>
-            <div className="text-sm text-blue-700 space-y-1">
+          <div className="bg-blue-50 dark:bg-gray-900 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Weather Impact Analysis</h4>
+            <div className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
               {weatherForecast[0].condition === 'wet' && (
                 <>
                   <div>• Wet conditions require intermediate or wet tires</div>
@@ -210,15 +205,15 @@ const WeatherForecast: React.FC = () => {
           </div>
 
           {/* Data Source Info */}
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Data Source:</span>
-              <span className="font-medium">
+              <span className="text-gray-700 dark:text-gray-200">Data Source:</span>
+              <span className="font-medium dark:text-gray-100">
                 {isUsingAPIData ? 'OpenWeatherMap API' : 'Simulated Weather Model'}
               </span>
             </div>
             {!isUsingAPIData && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Using track-specific weather patterns and historical data
               </div>
             )}
@@ -229,7 +224,7 @@ const WeatherForecast: React.FC = () => {
       {/* No Weather Data */}
       {!isLoading && weatherForecast.length === 0 && (
         <div className="text-center py-8">
-          <div className="text-gray-500 mb-2">No weather data available</div>
+          <div className="text-gray-500 dark:text-gray-300 mb-2">No weather data available</div>
           <button
             onClick={() => loadWeatherForecast(selectedTrack)}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"

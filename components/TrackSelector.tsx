@@ -46,9 +46,9 @@ const TrackSelector: React.FC = () => {
   const nextRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-4xl mx-auto">
+    <div className="bg-white dark:bg-[#181f2a] rounded-2xl shadow-lg p-6 w-full max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900">Track Selection</h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Track Selection</h3>
         <div className="flex items-center gap-2">
           
         </div>
@@ -79,7 +79,7 @@ const TrackSelector: React.FC = () => {
         {/* Custom Left Arrow */}
         <button
           ref={prevRef}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-blue-100 transition disabled:opacity-30"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-[#232b39] border border-gray-300 dark:border-gray-700 rounded-full shadow p-2 hover:bg-blue-100 dark:hover:bg-blue-900 transition disabled:opacity-30"
           style={{ marginLeft: '-32px' }}
           aria-label="Previous"
         >
@@ -105,40 +105,48 @@ const TrackSelector: React.FC = () => {
           }}
           spaceBetween={24}
           slidesPerView={3}
+          breakpoints={{
+            0: { slidesPerView: 1 },
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+          }}
           className="w-full"
         >
           {availableTracks.map((track) => (
             <SwiperSlide key={track.id}>
               <button
                 className={`
-                  relative bg-white rounded-xl shadow-md p-6 flex flex-col items-start
-                  border-2 w-full min-w-[220px] max-w-xs h-[260px] text-left transition overflow-x-hidden
-                  ${selectedTrack === track.id ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'}
+                  relative bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-col items-start
+                  border-2 border-gray-200 dark:border-gray-700 w-full h-[260px] text-left transition overflow-x-visible
+                  text-gray-900 dark:text-gray-100
+                  ${selectedTrack === track.id 
+                    ? 'border-blue-600 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-500' 
+                    : 'hover:border-blue-400 hover:shadow-lg'}
                 `}
                 onClick={() => handleTrackChange(track.id)}
                 style={{ zIndex: selectedTrack === track.id ? 1 : 0 }}
               >
                 <div className="flex items-center mb-2">
                   <span className="text-2xl mr-2">{getFlag(track.country)}</span>
-                  <span className="font-bold text-lg break-words line-clamp-2">{track.name}</span>
+                  <span className="font-bold text-lg break-words line-clamp-2 text-gray-900 dark:text-white">{track.name}</span>
                 </div>
-                <div className="text-gray-500 text-xs mb-1">{track.country}</div>
+                <div className="text-gray-500 dark:text-gray-300 text-xs mb-1">{track.country}</div>
                 <div className="flex flex-col gap-2 mt-auto w-full">
                   {/* Weather Sensitivity Badge with Tooltip */}
                   <div className="relative group w-full">
-                    <span className="block w-full max-w-full bg-blue-50 text-blue-700 px-2 py-0.5 rounded cursor-help truncate">
-                      Weather Sensitivity: {Math.round(track.weather_sensitivity * 100)}%
+                    <span className="block w-full bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded cursor-help">
+                      Weather: {Math.round(track.weather_sensitivity * 100)}%
                     </span>
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white text-xs text-gray-700 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-200 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       Historical likelihood of variable weather at this circuit. Not a real-time forecast.
                     </div>
                   </div>
                   {/* Overtaking Badge with Tooltip */}
                   <div className="relative group w-full">
-                    <span className="block w-full max-w-full bg-gray-100 text-gray-700 px-2 py-0.5 rounded cursor-help truncate">
+                    <span className="block w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded cursor-help">
                       Overtaking: {track.overtaking_difficulty < 0.3 ? 'Easy' : track.overtaking_difficulty < 0.7 ? 'Medium' : 'Hard'}
                     </span>
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white text-xs text-gray-700 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-200 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                       How difficult it is to overtake at this circuit, based on layout and history.
                     </div>
                   </div>
@@ -153,7 +161,7 @@ const TrackSelector: React.FC = () => {
         {/* Custom Right Arrow */}
         <button
           ref={nextRef}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-blue-100 transition disabled:opacity-30"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-[#232b39] border border-gray-300 dark:border-gray-700 rounded-full shadow p-2 hover:bg-blue-100 dark:hover:bg-blue-900 transition disabled:opacity-30"
           style={{ marginRight: '-32px' }}
           aria-label="Next"
         >
@@ -174,27 +182,27 @@ const TrackSelector: React.FC = () => {
       )}
 
       {selectedTrack && (
-        <div className="mt-6 p-5 bg-blue-50 rounded-xl border border-blue-100">
-          <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+        <div className="mt-6 p-5 bg-blue-50 dark:bg-[#232b39] rounded-xl border border-blue-100 dark:border-gray-700">
+          <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2">
             {getFlag(availableTracks.find(t => t.id === selectedTrack)?.country || '')}
-            {availableTracks.find(t => t.id === selectedTrack)?.name}
+            <span className="dark:text-gray-100">{availableTracks.find(t => t.id === selectedTrack)?.name}</span>
           </h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-blue-700">Circuit Length:</span>
-              <span className="ml-2 font-semibold">{availableTracks.find(t => t.id === selectedTrack)?.circuit_length}km</span>
+              <span className="text-blue-700 dark:text-blue-400">Circuit Length:</span>
+              <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">{availableTracks.find(t => t.id === selectedTrack)?.circuit_length}km</span>
             </div>
             <div>
-              <span className="text-blue-700">Total Laps:</span>
-              <span className="ml-2 font-semibold">{availableTracks.find(t => t.id === selectedTrack)?.total_laps}</span>
+              <span className="text-blue-700 dark:text-blue-400">Total Laps:</span>
+              <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">{availableTracks.find(t => t.id === selectedTrack)?.total_laps}</span>
             </div>
             <div>
-              <span className="text-blue-700">Lap Record:</span>
-              <span className="ml-2 font-semibold">{availableTracks.find(t => t.id === selectedTrack)?.lap_record}s</span>
+              <span className="text-blue-700 dark:text-blue-400">Lap Record:</span>
+              <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">{availableTracks.find(t => t.id === selectedTrack)?.lap_record}s</span>
             </div>
             <div>
-              <span className="text-blue-700">Weather Sensitivity:</span>
-              <span className="ml-2 font-semibold">{availableTracks.find(t => t.id === selectedTrack)?.weather_sensitivity}</span>
+              <span className="text-blue-700 dark:text-blue-400">Weather Sensitivity:</span>
+              <span className="ml-2 font-semibold text-gray-900 dark:text-gray-100">{availableTracks.find(t => t.id === selectedTrack)?.weather_sensitivity}</span>
             </div>
           </div>
         </div>
