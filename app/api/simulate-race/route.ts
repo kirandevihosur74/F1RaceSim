@@ -11,7 +11,9 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     })
     const data = await simResponse.json()
-    return NextResponse.json(data)
+    
+    // Preserve the status code from the backend
+    return NextResponse.json(data, { status: simResponse.status })
   } catch (error) {
     return NextResponse.json({ error: 'Simulation failed' }, { status: 500 })
   }
