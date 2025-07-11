@@ -125,76 +125,49 @@ class RaceSimulator:
 def simulate_race(strategy, weather: str = "dry", track_id: str = "silverstone") -> List[Dict[str, Any]]:
     """
     Simulate a complete F1 race with the given strategy.
-    
-    Args:
-        strategy: StrategyInput object or dictionary containing pit_stops, tires, and driver_style
-        weather: Weather conditions (dry, wet, intermediate)
-        track_id: Track identifier
-    
-    Returns:
-        List of lap-by-lap simulation results
     """
-    
     simulator = RaceSimulator(track_id)
     track = track_db.get_track(track_id)
     total_laps = track.total_laps
     results = []
-    
-    # Initialize race state
     tire_wear = 0.0
     current_tire_index = 0
     fuel_load = 0.0
     total_time = 0.0
-    
+
     # Handle both Pydantic model and dictionary
     if hasattr(strategy, 'pit_stops'):
-        # Pydantic model
         pit_stops = strategy.pit_stops
         tires = strategy.tires
         driver_style = strategy.driver_style
     else:
-        # Dictionary
-    pit_stops = strategy.get("pit_stops", [])
-    tires = strategy.get("tires", ["Medium"])
-    driver_style = strategy.get("driver_style", "balanced")
-    
+        pit_stops = strategy.get("pit_stops", [])
+        tires = strategy.get("tires", ["Medium"])
+        driver_style = strategy.get("driver_style", "balanced")
+
     for lap in range(1, total_laps + 1):
         # Check if this is a pit stop lap
         if lap in pit_stops:
-            # Reset tire wear and change to next compound
             tire_wear = 0.0
             current_tire_index = min(current_tire_index + 1, len(tires) - 1)
             total_time += simulator.pit_stop_time
-        
-        # Get current tire compound
         current_tire = tires[current_tire_index] if current_tire_index < len(tires) else tires[-1]
-        
-        # Calculate lap time
         lap_time = simulator.calculate_lap_time(
             lap, tire_wear, current_tire, driver_style, weather, fuel_load
         )
-        
-        # Update total time
         total_time += lap_time
-        
-        # Calculate new tire wear
         tire_wear = simulator.calculate_tire_wear(
             tire_wear, current_tire, driver_style, weather
         )
-        
-        # Update fuel load
         fuel_load = lap
-        
-        # Store lap result
         results.append({
             "lap": lap,
             "lap_time": lap_time,
             "tire_wear": round(tire_wear, 1),
-            "position": 1,  # Simplified - could be expanded for multi-car simulation
+            "position": 1,
             "fuel_load": round(fuel_load, 1)
         })
-    
-    return results 
+    return results
 
 def simulate_multi_car_race(car_configs: List[Dict[str, Any]], 
                            weather: str = "dry", 

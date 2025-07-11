@@ -89,11 +89,19 @@ const RaceStrategyForm: React.FC = () => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     handleSave()
-    runSimulation(weather)
-    toast('Simulation started...', { icon: '🏁' })
+    try {
+      await runSimulation(weather)
+      toast('Simulation started...', { icon: '🏁' })
+    } catch (err: any) {
+      if (err?.response?.status === 429 || err?.status === 429) {
+        toast.error('Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
+      } else {
+        toast.error('An error occurred while running the simulation.')
+      }
+    }
   }
 
   const handleNewStrategy = () => {

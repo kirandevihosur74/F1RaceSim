@@ -25,7 +25,7 @@ app = FastAPI(
 
 # --- Rate Limiter Setup ---
 # Add your admin IP(s) here
-ADMIN_IPS = {"23.121.159.68"}  # Replace with your real IP
+ADMIN_IPS = {"122.163.100.100"}  # Replace with your real IP
 
 def custom_key_func(request):
     ip = get_remote_address(request)
@@ -89,7 +89,7 @@ async def health_check(request: Request):
 
 @app.post("/simulate-race", response_model=SimulationResponse)
 @limiter.limit("5/day")
-async def simulate_race_endpoint(request: SimulationRequest):
+async def simulate_race_endpoint(request: Request, body: SimulationRequest):
     """
     Simulate a Formula 1 race with given strategy parameters.
     
@@ -99,13 +99,13 @@ async def simulate_race_endpoint(request: SimulationRequest):
     - **weather**: Weather conditions (dry, wet, intermediate)
     """
     try:
-        simulation_results = simulate_race(request.strategy, request.weather)
+        simulation_results = simulate_race(body.strategy, body.weather)
         
         # Calculate total race time
         total_time = sum(lap["lap_time"] for lap in simulation_results)
         
         # Generate strategy analysis
-        strategy_analysis = f"Simulated {len(simulation_results)} laps with {len(request.strategy.pit_stops)} pit stops using {' → '.join(request.strategy.tires)} compounds."
+        strategy_analysis = f"Simulated {len(simulation_results)} laps with {len(body.strategy.pit_stops)} pit stops using {' → '.join(body.strategy.tires)} compounds."
         
         return SimulationResponse(
             status="success",
@@ -118,14 +118,14 @@ async def simulate_race_endpoint(request: SimulationRequest):
 
 @app.post("/strategy-recommendation", response_model=RecommendationResponse)
 @limiter.limit("5/day")
-async def strategy_recommendation_endpoint(request: StrategyRecommendationRequest):
+async def strategy_recommendation_endpoint(request: Request, body: StrategyRecommendationRequest):
     """
     Get AI-generated strategy recommendations based on race scenario.
     
     - **scenario**: Description of the race scenario and current strategy
     """
     try:
-        recommendation = await get_strategy_recommendation(request.scenario)
+        recommendation = await get_strategy_recommendation(body.scenario)
         
         return RecommendationResponse(
             status="success",
