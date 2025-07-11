@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target, Plus } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
+import toast from 'react-hot-toast';
 
 const StrategyComparison: React.FC = () => {
   const { 
@@ -11,7 +12,8 @@ const StrategyComparison: React.FC = () => {
     deleteStrategy, 
     setActiveStrategy, 
     addStrategy,
-    activeStrategyId
+    activeStrategyId,
+    resetComparisonResults
   } = useSimulationStore()
 
   const handleCompareStrategies = () => {
@@ -77,11 +79,15 @@ const StrategyComparison: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {strategies.map((strategy) => (
-              <div key={strategy.id} className={`p-4 border rounded-lg flex flex-col gap-2 ${
-                strategy.id === activeStrategyId 
-                  ? 'border-blue-300 bg-blue-50 dark:bg-[#232b39]' 
-                  : 'border-gray-200 dark:border-gray-700 dark:bg-gray-800'
-              }`}>
+              <div
+                key={strategy.id}
+                className={`p-4 border rounded-lg flex flex-col gap-2 cursor-pointer hover:shadow-lg transition ${
+                  strategy.id === activeStrategyId 
+                    ? 'border-blue-300 bg-blue-50 dark:bg-[#232b39]' 
+                    : 'border-gray-200 dark:border-gray-700 dark:bg-gray-800'
+                }`}
+                onClick={() => setActiveStrategy(strategy.id)}
+              >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">{strategy.name}</h3>
@@ -90,8 +96,16 @@ const StrategyComparison: React.FC = () => {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setActiveStrategy(strategy.id)} className="text-f1-blue hover:underline text-xs dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
-                    <button onClick={() => deleteStrategy(strategy.id)} className="text-red-600 hover:underline text-xs dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        deleteStrategy(strategy.id);
+                        toast.success(`${strategy.name} deleted successfully`);
+                      }}
+                      className="text-red-600 hover:underline text-xs dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
@@ -125,6 +139,9 @@ const StrategyComparison: React.FC = () => {
              'Compare Strategies'}
           </span>
         </button>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+          * Please minimize API requests as there is a rate limit for demo purposes.
+        </p>
       </div>
     )
   }
@@ -196,7 +213,7 @@ const StrategyComparison: React.FC = () => {
       {/* Key Differences */}
       {comparisonResults.key_differences.length > 0 && (
         <div className="mt-6">
-          <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
             <AlertTriangle className="w-5 h-5 text-orange-500" />
             <span>Key Differences</span>
           </h3>
@@ -237,7 +254,7 @@ const StrategyComparison: React.FC = () => {
 
       {/* Risk Analysis */}
       <div className="mt-6">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2 dark:text-gray-100">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
           <Target className="w-5 h-5 text-purple-500" />
           <span>Risk Analysis</span>
         </h3>
@@ -278,6 +295,17 @@ const StrategyComparison: React.FC = () => {
         <BarChart3 className="w-5 h-5" />
         <span>{isLoading ? 'Comparing...' : 'Compare Again'}</span>
       </button>
+
+      {/* Reset Comparison Button */}
+      <button
+        onClick={resetComparisonResults}
+        className="btn-secondary w-full mt-4"
+      >
+        Reset Comparison
+      </button>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+        * Please minimize API requests as there is a rate limit for demo purposes.
+      </p>
     </div>
   )
 }

@@ -321,6 +321,9 @@ const RaceStrategyForm: React.FC = () => {
           <span>{isLoading ? 'Simulating...' : 'Run Simulation'}</span>
         </button>
       </form>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+        * Please minimize API requests as there is a rate limit for demo purposes.
+      </p>
     </div>
   )
 }

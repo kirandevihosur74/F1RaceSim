@@ -147,6 +147,7 @@ interface SimulationStore {
   // API actions
   refreshAPIData: () => Promise<void>
   toggleAPIData: () => void
+  resetComparisonResults: () => void
 }
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
@@ -154,7 +155,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   strategies: [
     {
       id: 'default-1',
-      name: '', // Start with empty name
+      name: 'Strategy 1', // Start with default name
       pit_stops: [15, 35],
       tires: ['Medium', 'Hard', 'Medium'],
       driver_style: 'balanced'
@@ -490,6 +491,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       })
     }
   },
+
+  // Reset comparison results
+  resetComparisonResults: () => set({ comparisonResults: null }),
 
   toggleAPIData: () => {
     const { isUsingAPIData } = get()
