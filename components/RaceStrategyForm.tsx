@@ -96,8 +96,8 @@ const RaceStrategyForm: React.FC = () => {
       await runSimulation(weather)
       toast('Simulation started...', { icon: '🏁' })
     } catch (err: any) {
-      if (err?.response?.status === 429 || err?.status === 429) {
-        toast.error('Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
+      if (err?.message?.includes('Rate limit exceeded') || err?.message?.includes('429')) {
+        toast.error(err.message || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
       } else {
         toast.error('An error occurred while running the simulation.')
       }

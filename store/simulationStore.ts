@@ -224,6 +224,11 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         }),
       })
 
+      if (response.status === 429) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
+      }
+
       if (!response.ok) {
         throw new Error('Failed to run simulation')
       }
@@ -238,6 +243,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Simulation error:', error)
       set({ isLoading: false })
+      throw error // Re-throw so the component can handle it
     }
   },
 
@@ -260,6 +266,11 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         }),
       })
 
+      if (response.status === 429) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.')
+      }
+
       if (!response.ok) {
         throw new Error('Failed to run multi-car simulation')
       }
@@ -272,6 +283,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Multi-car simulation error:', error)
       set({ isLoading: false })
+      throw error // Re-throw so the component can handle it
     }
   },
 
