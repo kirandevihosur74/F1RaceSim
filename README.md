@@ -180,12 +180,12 @@ python -m pytest
 
 ## 📈 Performance & UX
 - **API Rate Limiting**
-- **Graceful Error Handling**
+- **Error Handling**
 - **Modern, Responsive UI**
 - **User Feedback via Toasts**
 
 ## 🤝 Contributing
-1. Fork the repository
+1. Fork this repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
