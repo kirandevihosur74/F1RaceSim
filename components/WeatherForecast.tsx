@@ -203,21 +203,6 @@ const WeatherForecast: React.FC = () => {
               )}
             </div>
           </div>
-
-          {/* Data Source Info */}
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-700 dark:text-gray-200">Data Source:</span>
-              <span className="font-medium dark:text-gray-100">
-                {isUsingAPIData ? 'OpenWeatherMap API' : 'Simulated Weather Model'}
-              </span>
-            </div>
-            {!isUsingAPIData && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Using track-specific weather patterns and historical data
-              </div>
-            )}
-          </div>
         </div>
       )}
 
