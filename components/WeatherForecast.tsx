@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useSimulationStore } from '../store/simulationStore'
 
-const WeatherForecast: React.FC = () => {
+const WeatherForecast = () => {
   const {
     selectedTrack,
     weatherForecast,
@@ -69,7 +69,6 @@ const WeatherForecast: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Weather Forecast</h3>
         
-        {/* Data Source Indicator */}
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${isUsingAPIData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
           <span className="text-xs text-gray-600 dark:text-gray-300">
@@ -78,7 +77,6 @@ const WeatherForecast: React.FC = () => {
         </div>
       </div>
 
-      {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -86,10 +84,8 @@ const WeatherForecast: React.FC = () => {
         </div>
       )}
 
-      {/* Weather Data */}
       {!isLoading && weatherForecast.length > 0 && (
         <div className="space-y-4">
-          {/* Current Weather Summary */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -114,7 +110,6 @@ const WeatherForecast: React.FC = () => {
             </div>
           </div>
 
-          {/* Weather Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
               <div className="text-sm text-gray-600 dark:text-gray-300">Humidity</div>
@@ -142,11 +137,10 @@ const WeatherForecast: React.FC = () => {
             </div>
           </div>
 
-          {/* Weather Timeline */}
           <div className="bg-blue-50 dark:bg-gray-900 rounded-lg p-4">
             <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-3">Weather Timeline</h4>
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {weatherForecast.map((forecast, index) => (
+              {weatherForecast.map((forecast) => (
                 <div
                   key={forecast.lap}
                   className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -176,7 +170,6 @@ const WeatherForecast: React.FC = () => {
             </div>
           </div>
 
-          {/* Weather Impact Analysis */}
           <div className="bg-blue-50 dark:bg-gray-900 rounded-lg p-4">
             <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Weather Impact Analysis</h4>
             <div className="text-sm text-blue-700 dark:text-blue-200 space-y-1">
@@ -206,7 +199,6 @@ const WeatherForecast: React.FC = () => {
         </div>
       )}
 
-      {/* No Weather Data */}
       {!isLoading && weatherForecast.length === 0 && (
         <div className="text-center py-8">
           <div className="text-gray-500 dark:text-gray-300 mb-2">No weather data available</div>

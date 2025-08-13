@@ -21,12 +21,10 @@ export default function Home() {
   } = useSimulationStore()
 
   useEffect(() => {
-    // Load initial data
     loadAvailableTracks()
   }, [loadAvailableTracks])
 
   useEffect(() => {
-    // Load weather forecast when track changes
     if (selectedTrack) {
       loadWeatherForecast(selectedTrack)
     }
@@ -36,7 +34,6 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
-      {/* API Status Banner */}
       {apiError && (
         <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -58,31 +55,26 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Track Selection & Weather - much wider */}
           <div className="lg:col-span-3 space-y-6">
             <TrackSelector />
             <WeatherForecast />
           </div>
 
-          {/* Strategy Form & Recommendations - narrower */}
           <div className="lg:col-span-2 space-y-6 max-w-xl mx-auto">
             <RaceStrategyForm />
             <StrategyRecommendations />
           </div>
         </div>
 
-        {/* Full Width - Simulation Results */}
         <div className="mt-8">
           <SimulationResultsChart />
         </div>
 
-        {/* Full Width - Strategy Comparison */}
         <div className="mt-8">
           <StrategyComparison />
         </div>
       </main>
 
-      {/* Custom Footer */}
       <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-12">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-2">

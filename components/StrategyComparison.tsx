@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target, Plus } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'
 
-const StrategyComparison: React.FC = () => {
+const StrategyComparison = () => {
   const { 
     strategies, 
     comparisonResults, 
@@ -98,9 +98,9 @@ const StrategyComparison: React.FC = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={e => {
-                        e.stopPropagation();
-                        deleteStrategy(strategy.id);
-                        toast.success(`${strategy.name} deleted successfully`);
+                        e.stopPropagation()
+                        deleteStrategy(strategy.id)
+                        toast.success(`${strategy.name} deleted successfully`)
                       }}
                       className="text-red-600 hover:underline text-xs dark:text-red-400 dark:hover:text-red-300"
                     >
@@ -139,6 +139,7 @@ const StrategyComparison: React.FC = () => {
              'Compare Strategies'}
           </span>
         </button>
+        
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
           * Please minimize API requests as there is a rate limit for demo purposes.
         </p>
@@ -150,7 +151,6 @@ const StrategyComparison: React.FC = () => {
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Strategy Comparison Results</h2>
       
-      {/* Winner */}
       <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/40 dark:to-yellow-900/40 p-4 rounded-lg mb-6">
         <div className="flex items-center space-x-3">
           <Trophy className="w-6 h-6 text-yellow-600 dark:text-yellow-200" />
@@ -161,7 +161,6 @@ const StrategyComparison: React.FC = () => {
         </div>
       </div>
 
-      {/* Strategy Comparison Table */}
       <div className="overflow-x-auto">
         <table className="w-full dark:bg-gray-800">
           <thead className="dark:bg-gray-800">
@@ -210,7 +209,6 @@ const StrategyComparison: React.FC = () => {
         </table>
       </div>
 
-      {/* Key Differences */}
       {comparisonResults.key_differences.length > 0 && (
         <div className="mt-6">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
@@ -235,7 +233,6 @@ const StrategyComparison: React.FC = () => {
         </div>
       )}
 
-      {/* Optimization Suggestions */}
       {comparisonResults.optimization_suggestions.length > 0 && (
         <div className="mt-6">
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
@@ -252,7 +249,6 @@ const StrategyComparison: React.FC = () => {
         </div>
       )}
 
-      {/* Risk Analysis */}
       <div className="mt-6">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
           <Target className="w-5 h-5 text-purple-500" />
@@ -286,7 +282,6 @@ const StrategyComparison: React.FC = () => {
         </div>
       </div>
 
-      {/* Compare Again Button */}
       <button
         onClick={handleCompareStrategies}
         disabled={isLoading}
@@ -296,13 +291,13 @@ const StrategyComparison: React.FC = () => {
         <span>{isLoading ? 'Comparing...' : 'Compare Again'}</span>
       </button>
 
-      {/* Reset Comparison Button */}
       <button
         onClick={resetComparisonResults}
         className="btn-secondary w-full mt-4"
       >
         Reset Comparison
       </button>
+      
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
         * Please minimize API requests as there is a rate limit for demo purposes.
       </p>

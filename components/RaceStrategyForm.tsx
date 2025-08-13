@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Play, Plus, Trash2, MapPin } from 'lucide-react'
+import { Play, Plus, Trash2 } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'
 
-const RaceStrategyForm: React.FC = () => {
+const RaceStrategyForm = () => {
   const { 
     strategies, 
     activeStrategyId, 
@@ -18,7 +18,7 @@ const RaceStrategyForm: React.FC = () => {
   
   const [weather, setWeather] = useState('dry')
   const [selectedTrackDetails, setSelectedTrackDetails] = useState<any>(null)
-  // Find the strategy to edit
+  
   const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
   const [localStrategy, setLocalStrategy] = useState(strategy ? { ...strategy } : undefined)
 
@@ -35,51 +35,50 @@ const RaceStrategyForm: React.FC = () => {
 
   useEffect(() => {
     if (strategies.length > 0 && !activeStrategyId) {
-      setActiveStrategy(strategies[0].id);
+      setActiveStrategy(strategies[0].id)
     }
-  }, [strategies, activeStrategyId, setActiveStrategy]);
+  }, [strategies, activeStrategyId, setActiveStrategy])
 
   const handlePitStopChange = (index: number, value: number) => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newPitStops = [...localStrategy.pit_stops]
     newPitStops[index] = value
     setLocalStrategy({ ...localStrategy, pit_stops: newPitStops })
   }
 
   const addPitStop = () => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newPitStops = [...localStrategy.pit_stops, 0]
     setLocalStrategy({ ...localStrategy, pit_stops: newPitStops })
   }
 
   const removePitStop = (index: number) => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newPitStops = localStrategy.pit_stops.filter((_, i) => i !== index)
     setLocalStrategy({ ...localStrategy, pit_stops: newPitStops })
   }
 
   const handleTireChange = (index: number, value: string) => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newTires = [...localStrategy.tires]
     newTires[index] = value
     setLocalStrategy({ ...localStrategy, tires: newTires })
   }
 
   const addTire = () => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newTires = [...localStrategy.tires, 'Medium']
     setLocalStrategy({ ...localStrategy, tires: newTires })
   }
 
   const removeTire = (index: number) => {
-    if (!localStrategy) return;
+    if (!localStrategy) return
     const newTires = localStrategy.tires.filter((_, i) => i !== index)
     setLocalStrategy({ ...localStrategy, tires: newTires })
   }
 
-  const handleSave = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!strategy || !localStrategy) return;
+  const handleSave = () => {
+    if (!strategy || !localStrategy) return
     if (strategy.id) {
       editStrategy(strategy.id, { ...localStrategy, id: strategy.id })
       toast.success('Strategy saved!')
@@ -91,8 +90,8 @@ const RaceStrategyForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Save strategy without showing toast
-    if (!strategy || !localStrategy) return;
+    
+    if (!strategy || !localStrategy) return
     if (strategy.id) {
       editStrategy(strategy.id, { ...localStrategy, id: strategy.id })
     } else {
@@ -103,14 +102,11 @@ const RaceStrategyForm: React.FC = () => {
       await runSimulation(weather)
       toast('Simulation started...', { icon: '🏁' })
     } catch (err: any) {
-      let msg = err.message || '';
-      if (
-        msg.includes('Rate limit exceeded') &&
-        msg.includes('per 1 day')
-      ) {
-        msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
+      let msg = err.message || ''
+      if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
+        msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.'
       }
-      toast.error(msg || 'An error occurred while running the simulation.');
+      toast.error(msg || 'An error occurred while running the simulation.')
     }
   }
 
@@ -123,23 +119,6 @@ const RaceStrategyForm: React.FC = () => {
     }
     addStrategy(newStrategy)
     setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
-  }
-
-  const handleDelete = (index: number) => {
-    if (!localStrategy) return;
-    removePitStop(index)
-    toast.error('Pit stop removed.')
-  }
-
-  const getTrackIcon = (trackId: string) => {
-    const icons: Record<string, string> = {
-      monaco: '🇲🇨',
-      silverstone: '🇬🇧',
-      spa: '🇧🇪',
-      monza: '🇮🇹',
-      suzuka: '🇯🇵'
-    }
-    return icons[trackId] || '🏁'
   }
 
   if (!strategy || !localStrategy) {
@@ -161,10 +140,8 @@ const RaceStrategyForm: React.FC = () => {
     <div className="card">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Race Strategy Configuration</h2>
-        {/* Removed top-right New Strategy button */}
       </div>
 
-      {/* Strategy Name */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Strategy Name
@@ -177,10 +154,7 @@ const RaceStrategyForm: React.FC = () => {
           placeholder="Enter strategy name"
         />
       </div>
-
-      {/* Removed Editing indicator for cleaner UI */}
       
-      {/* Track Information */}
       {selectedTrackDetails && (
         <div className="mb-4 text-sm text-blue-900 dark:text-blue-300 font-semibold">
           Selected Track: <span className="dark:text-gray-100">{selectedTrackDetails.name}</span>
@@ -188,7 +162,6 @@ const RaceStrategyForm: React.FC = () => {
       )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Weather Conditions */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Weather Conditions
@@ -204,14 +177,13 @@ const RaceStrategyForm: React.FC = () => {
           </select>
         </div>
 
-        {/* Driver Style */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Driver Style
           </label>
           <select
-            value={localStrategy ? localStrategy.driver_style : ''}
-            onChange={(e) => localStrategy && setLocalStrategy({ ...localStrategy, driver_style: e.target.value as any })}
+            value={localStrategy.driver_style}
+            onChange={(e) => setLocalStrategy({ ...localStrategy, driver_style: e.target.value as any })}
             className="input-field"
           >
             <option value="conservative">Conservative</option>
@@ -220,7 +192,6 @@ const RaceStrategyForm: React.FC = () => {
           </select>
         </div>
 
-        {/* Pit Stops */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -237,7 +208,7 @@ const RaceStrategyForm: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            {localStrategy && localStrategy.pit_stops.map((lap, index) => (
+            {localStrategy.pit_stops.map((lap, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <input
                   type="number"
@@ -250,7 +221,7 @@ const RaceStrategyForm: React.FC = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => handleDelete(index)}
+                  onClick={() => removePitStop(index)}
                   className="p-2 text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -260,7 +231,6 @@ const RaceStrategyForm: React.FC = () => {
           </div>
         </div>
 
-        {/* Tire Strategy */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -277,7 +247,7 @@ const RaceStrategyForm: React.FC = () => {
           </div>
           
           <div className="space-y-2">
-            {localStrategy && localStrategy.tires.map((tire, index) => (
+            {localStrategy.tires.map((tire, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <select
                   value={tire}
@@ -302,7 +272,6 @@ const RaceStrategyForm: React.FC = () => {
           </div>
         </div>
 
-        {/* Save Button */}
         <button
           type="button"
           onClick={handleSave}
@@ -311,7 +280,6 @@ const RaceStrategyForm: React.FC = () => {
           <span>Save Strategy</span>
         </button>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
@@ -321,6 +289,7 @@ const RaceStrategyForm: React.FC = () => {
           <span>{isLoading ? 'Simulating...' : 'Run Simulation'}</span>
         </button>
       </form>
+      
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
         * Please minimize API requests as there is a rate limit for demo purposes.
       </p>

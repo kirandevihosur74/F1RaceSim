@@ -2,17 +2,14 @@ import React from 'react'
 import dynamic from 'next/dynamic'
 import { useSimulationStore } from '../store/simulationStore'
 
-// Dynamically import ApexCharts to avoid SSR issues
 const ApexCharts = dynamic(() => import('react-apexcharts'), { ssr: false })
 
-// Helper to format lap time as mm:ss.s
 const formatLapTime = (time: number) => {
   const minutes = Math.floor(time / 60)
   const seconds = (time % 60).toFixed(1).padStart(4, '0')
   return `${minutes}:${seconds}`
 }
 
-// Helper to format total time as hh:mm:ss.s
 const formatTotalTime = (time: number) => {
   const hours = Math.floor(time / 3600)
   const minutes = Math.floor((time % 3600) / 60)
@@ -20,7 +17,7 @@ const formatTotalTime = (time: number) => {
   return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds}`
 }
 
-const SimulationResultsChart: React.FC = () => {
+const SimulationResultsChart = () => {
   const {
     simulationResults,
     totalTime,
@@ -31,10 +28,8 @@ const SimulationResultsChart: React.FC = () => {
     availableTracks,
   } = useSimulationStore()
 
-  // Detect dark mode
   const isDark = typeof window !== 'undefined' && (window.document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches)
 
-  // Get active strategy for context
   const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
   const track = availableTracks.find(t => t.id === selectedTrack)
   const weather = 'Dry'
@@ -50,7 +45,6 @@ const SimulationResultsChart: React.FC = () => {
     )
   }
 
-  // Prepare data for ApexCharts
   const laps = simulationResults.map(d => d.lap)
   const lapTimes = simulationResults.map(d => d.lap_time)
   const tireWear = simulationResults.map(d => d.tire_wear)
@@ -59,17 +53,17 @@ const SimulationResultsChart: React.FC = () => {
   const driverStyle = strategy?.driver_style
   const strategyName = strategy?.name
 
-  // ApexCharts options
-  const axisColor = isDark ? '#cbd5e1' : '#000000'; // Pure black for max contrast in light mode
-  const gridColor = isDark ? '#334155' : '#e5e7eb';
-  const legendColor = isDark ? '#cbd5e1' : '#374151';
+  const axisColor = isDark ? '#cbd5e1' : '#000000'
+  const gridColor = isDark ? '#334155' : '#e5e7eb'
+  const legendColor = isDark ? '#cbd5e1' : '#374151'
+  
   const options = {
     chart: {
       id: 'f1-sim-results',
       toolbar: { show: false },
       zoom: { enabled: true },
       fontFamily: 'inherit',
-      foreColor: axisColor, // fallback
+      foreColor: axisColor,
     },
     stroke: { width: [3, 2], curve: 'smooth' as const },
     colors: ['#E10600', '#1E3A8A'],
@@ -164,7 +158,7 @@ const SimulationResultsChart: React.FC = () => {
   return (
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>
-      {/* Context Row */}
+      
       <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-700 dark:text-gray-300 items-center">
         {track && <span><b>Track:</b> {track.name}</span>}
         <span><b>Weather:</b> {weather}</span>
@@ -172,6 +166,7 @@ const SimulationResultsChart: React.FC = () => {
         {driverStyle && <span><b>Driver Style:</b> {driverStyle.charAt(0).toUpperCase() + driverStyle.slice(1)}</span>}
         {strategyName && <span><b>Strategy:</b> {strategyName}</span>}
       </div>
+      
       <div className="mb-8">
         <ApexCharts
           options={options}
@@ -180,7 +175,7 @@ const SimulationResultsChart: React.FC = () => {
           height={400}
         />
       </div>
-      {/* Summary Statistics */}
+      
       {totalTime && (
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center">
@@ -197,7 +192,7 @@ const SimulationResultsChart: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Strategy Analysis */}
+      
       {strategyAnalysis && (
         <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Strategy Analysis</h3>

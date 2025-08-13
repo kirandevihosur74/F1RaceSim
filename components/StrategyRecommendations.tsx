@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Brain, Lightbulb, TrendingUp } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
 
-const StrategyRecommendations: React.FC = () => {
+const StrategyRecommendations = () => {
   const { 
     strategies, 
     activeStrategyId, 
@@ -12,6 +12,7 @@ const StrategyRecommendations: React.FC = () => {
     addStrategy, 
     setActiveStrategy
   } = useSimulationStore()
+  
   const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
 
   const handleGetRecommendation = () => {
@@ -82,7 +83,7 @@ const StrategyRecommendations: React.FC = () => {
               </div>
             </div>
           </div>
-          {/* Refresh Recommendation Button */}
+          
           <div className="text-center mt-4">
             <button
               onClick={handleGetRecommendation}
@@ -105,6 +106,7 @@ const StrategyRecommendations: React.FC = () => {
           </button>
         </div>
       )}
+      
       <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
         * Please minimize API requests as there is a rate limit for demo purposes.
       </p>

@@ -92,7 +92,6 @@ export interface JolpiRace {
   }>
 }
 
-// Local fallback data
 const LOCAL_TRACK_DATA = {
   monaco: {
     id: "monaco",
@@ -176,7 +175,6 @@ const LOCAL_TRACK_DATA = {
   }
 }
 
-// Track coordinates for weather API
 const TRACK_COORDINATES = {
   monaco: { lat: 43.7347, lon: 7.4206 },
   silverstone: { lat: 52.0736, lon: -1.0167 },
@@ -185,12 +183,10 @@ const TRACK_COORDINATES = {
   suzuka: { lat: 34.8431, lon: 136.5412 }
 }
 
-// F1 API functions using Jolpi API
 export class F1APIService {
   private static readonly JOLPI_BASE_URL = 'https://api.jolpi.ca/ergast/f1'
   private static readonly WEATHER_API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
 
-  // Get all circuits from Jolpi API
   static async getCircuits(): Promise<JolpiCircuit[]> {
     try {
       const response = await fetch(`${this.JOLPI_BASE_URL}/circuits.json`)
@@ -206,7 +202,6 @@ export class F1APIService {
     }
   }
 
-  // Get fastest lap for a specific circuit
   static async getFastestLap(circuitId: string): Promise<JolpiFastestLap | null> {
     try {
       const response = await fetch(`${this.JOLPI_BASE_URL}/circuits/${circuitId}/fastest/1/drivers.json`)
@@ -221,7 +216,6 @@ export class F1APIService {
     }
   }
 
-  // Get race results for a specific circuit
   static async getRaceResults(circuitId: string, year: string = '2023'): Promise<JolpiRace | null> {
     try {
       const response = await fetch(`${this.JOLPI_BASE_URL}/${year}/circuits/${circuitId}/results.json`)
@@ -236,7 +230,6 @@ export class F1APIService {
     }
   }
 
-  // Transform Jolpi circuit data to our format
   static transformCircuitData(circuits: JolpiCircuit[]): any[] {
     return circuits.map(circuit => ({
       id: circuit.circuitId,
@@ -250,7 +243,6 @@ export class F1APIService {
     }))
   }
 
-  // Get weather data for a track
   static async getWeatherData(trackId: string): Promise<any> {
     const coords = TRACK_COORDINATES[trackId as keyof typeof TRACK_COORDINATES]
     if (!coords || !this.WEATHER_API_KEY) {
@@ -272,7 +264,6 @@ export class F1APIService {
     }
   }
 
-  // Transform OpenWeatherMap data to our format
   private static transformWeatherData(weatherData: any, trackId: string): any {
     const condition = this.mapWeatherCondition(weatherData.weather[0].main)
     const temperature = weatherData.main.temp
@@ -290,7 +281,6 @@ export class F1APIService {
     }
   }
 
-  // Map OpenWeatherMap conditions to our format
   private static mapWeatherCondition(weatherMain: string): string {
     switch (weatherMain.toLowerCase()) {
       case 'rain':
@@ -306,7 +296,6 @@ export class F1APIService {
     }
   }
 
-  // Generate simulated weather as fallback
   private static generateSimulatedWeather(trackId: string): any {
     const conditions = ['dry', 'intermediate', 'wet']
     const condition = conditions[Math.floor(Math.random() * conditions.length)]
@@ -322,21 +311,17 @@ export class F1APIService {
     }
   }
 
-  // Get track data with Jolpi API fallback
   static async getTrackData(trackId: string): Promise<any> {
-    // First try to get from local data
     const localTrack = LOCAL_TRACK_DATA[trackId as keyof typeof LOCAL_TRACK_DATA]
     if (localTrack) {
       return localTrack
     }
 
-    // If not in local data, try to get from Jolpi API
     try {
       const circuits = await this.getCircuits()
       const circuit = circuits.find(c => c.circuitId === trackId)
       
       if (circuit) {
-        // Get additional data from API
         const fastestLap = await this.getFastestLap(trackId)
         const raceResults = await this.getRaceResults(trackId)
         
@@ -351,8 +336,7 @@ export class F1APIService {
           },
           lap_record: fastestLap ? this.parseLapTime(fastestLap.FastestLap.Time.time) : 0,
           total_laps: raceResults ? parseInt(raceResults.Results[0]?.laps || '0') : 0,
-          // Use default values for missing data
-          circuit_length: 5.0, // Would need additional API calls
+          circuit_length: 5.0,
           sectors: [
             { name: "Sector 1", length: 0.33, base_time: 25.0, tire_wear_factor: 1.0, fuel_consumption_factor: 1.0 },
             { name: "Sector 2", length: 0.34, base_time: 28.0, tire_wear_factor: 1.1, fuel_consumption_factor: 1.0 },
@@ -367,11 +351,9 @@ export class F1APIService {
       console.error('Failed to get track data from Jolpi API:', error)
     }
 
-    // Return null if track not found
     return null
   }
 
-  // Parse lap time string to seconds
   private static parseLapTime(timeString: string): number {
     const parts = timeString.split(':')
     if (parts.length === 2) {
@@ -380,7 +362,6 @@ export class F1APIService {
     return parseFloat(timeString)
   }
 
-  // Get all available tracks (local + Jolpi API)
   static async getAllTracks(): Promise<any[]> {
     const localTracks = Object.values(LOCAL_TRACK_DATA)
     
@@ -388,7 +369,6 @@ export class F1APIService {
       const apiCircuits = await this.getCircuits()
       const apiTracks = this.transformCircuitData(apiCircuits)
       
-      // Merge local and API data, prioritizing local data for known tracks
       const mergedTracks = [...localTracks]
       
       apiTracks.forEach(apiTrack => {
@@ -396,9 +376,9 @@ export class F1APIService {
         if (!existingTrack) {
           mergedTracks.push({
             ...apiTrack,
-            circuit_length: 5.0, // Default value
-            total_laps: 50, // Default value
-            lap_record: 80.0, // Default value
+            circuit_length: 5.0,
+            total_laps: 50,
+            lap_record: 80.0,
             sectors: [
               { name: "Sector 1", length: 0.33, base_time: 25.0, tire_wear_factor: 1.0, fuel_consumption_factor: 1.0 },
               { name: "Sector 2", length: 0.34, base_time: 28.0, tire_wear_factor: 1.1, fuel_consumption_factor: 1.0 },
@@ -418,7 +398,6 @@ export class F1APIService {
     }
   }
 
-  // Test Jolpi API connectivity
   static async testAPIConnectivity(): Promise<{ available: boolean; endpoint: string; error?: string }> {
     try {
       const response = await fetch(`${this.JOLPI_BASE_URL}/circuits.json`)

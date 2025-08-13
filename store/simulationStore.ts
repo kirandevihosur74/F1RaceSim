@@ -7,7 +7,6 @@ export interface StrategyInput {
   driver_style: 'conservative' | 'balanced' | 'aggressive'
 }
 
-// Add a meta type for strategies
 export interface StrategyInputWithMeta extends StrategyInput {
   id: string
   name: string
@@ -108,7 +107,6 @@ export interface ComparisonResult {
 }
 
 interface SimulationStore {
-  // Basic simulation state
   strategies: StrategyInputWithMeta[]
   activeStrategyId: string | null
   simulationResults: SimulationResult[]
@@ -118,17 +116,14 @@ interface SimulationStore {
   totalTime: number | null
   strategyAnalysis: string | null
   
-  // New features state
   selectedTrack: string
   availableTracks: TrackData[]
   weatherForecast: WeatherForecast[]
   comparisonResults: ComparisonResult | null
   
-  // API state
   isUsingAPIData: boolean
   apiError: string | null
   
-  // Actions
   addStrategy: (strategy: Omit<StrategyInputWithMeta, 'id'>) => void
   editStrategy: (id: string, updates: Partial<StrategyInputWithMeta>) => void
   deleteStrategy: (id: string) => void
@@ -137,25 +132,22 @@ interface SimulationStore {
   runMultiCarSimulation: (carConfigs: any[], weather?: string) => Promise<void>
   getStrategyRecommendation: (scenario: string) => Promise<void>
   
-  // New feature actions
   setSelectedTrack: (trackId: string) => void
   loadAvailableTracks: () => Promise<void>
   loadTrackDetails: (trackId: string) => Promise<TrackData>
   loadWeatherForecast: (trackId: string) => Promise<void>
   compareStrategies: (strategies: any[], weather?: string) => Promise<void>
   
-  // API actions
   refreshAPIData: () => Promise<void>
   toggleAPIData: () => void
   resetComparisonResults: () => void
 }
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
-  // Initial state
   strategies: [
     {
       id: 'default-1',
-      name: 'Strategy 1', // Start with default name
+      name: 'Strategy 1',
       pit_stops: [15, 35],
       tires: ['Medium', 'Hard', 'Medium'],
       driver_style: 'balanced'
@@ -169,29 +161,28 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   totalTime: null,
   strategyAnalysis: null,
   
-  // New features initial state
   selectedTrack: 'silverstone',
   availableTracks: [],
   weatherForecast: [],
   comparisonResults: null,
   
-  // API state
   isUsingAPIData: true,
   apiError: null,
 
-  // Basic actions
   addStrategy: (strategy) => {
-    const id = `strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const id = `strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
     set((state) => ({
       strategies: [...state.strategies, { ...strategy, id }],
-      activeStrategyId: id, // Set the new strategy as active
-    }));
+      activeStrategyId: id,
+    }))
   },
+
   editStrategy: (id, updates) => {
     set((state) => ({
       strategies: state.strategies.map(s => s.id === id ? { ...s, ...updates } : s)
-    }));
+    }))
   },
+
   deleteStrategy: (id) => {
     set((state) => {
       const newStrategies = state.strategies.filter(s => s.id !== id)
@@ -201,8 +192,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       }
     })
   },
+
   setActiveStrategy: (id) => {
-    set({ activeStrategyId: id });
+    set({ activeStrategyId: id })
   },
 
   runSimulation: async (weather = 'dry') => {
@@ -244,7 +236,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Simulation error:', error)
       set({ isLoading: false })
-      throw error // Re-throw so the component can handle it
+      throw error
     }
   },
 
@@ -269,12 +261,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
       if (response.status === 429) {
         const errorData = await response.json()
-        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
-        if (
-          msg.includes('Rate limit exceeded') &&
-          msg.includes('per 1 day')
-        ) {
-          msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.';
+        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.'
+        if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
+          msg = 'Rate limit exceeded: You have reached the maximum number of simulations allowed today.'
         }
         throw new Error(msg)
       }
@@ -291,7 +280,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Multi-car simulation error:', error)
       set({ isLoading: false })
-      throw error // Re-throw so the component can handle it
+      throw error
     }
   },
 
@@ -309,12 +298,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
       if (response.status === 429) {
         const errorData = await response.json()
-        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.';
-        if (
-          msg.includes('Rate limit exceeded') &&
-          msg.includes('per 1 day')
-        ) {
-          msg = 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.';
+        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.'
+        if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
+          msg = 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.'
         }
         throw new Error(msg)
       }
@@ -331,11 +317,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Strategy recommendation error:', error)
       set({ isLoading: false })
-      throw error // Re-throw so the component can handle it
+      throw error
     }
   },
 
-  // New feature actions
   setSelectedTrack: (trackId) => {
     set({ selectedTrack: trackId })
   },
@@ -347,7 +332,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const { isUsingAPIData } = get()
       
       if (isUsingAPIData) {
-        // Try to get tracks from API first
         const tracks = await F1APIService.getAllTracks()
         set({ 
           availableTracks: tracks,
@@ -355,7 +339,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           isUsingAPIData: true
         })
       } else {
-        // Use local data only
         const localTracks = await F1APIService.getAllTracks()
         set({ 
           availableTracks: localTracks,
@@ -371,7 +354,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         isUsingAPIData: false
       })
       
-      // Fallback to local data
       try {
         const localTracks = await F1APIService.getAllTracks()
         set({ availableTracks: localTracks })
@@ -387,14 +369,12 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const { isUsingAPIData } = get()
       
       if (isUsingAPIData) {
-        // Try to get from API first
         const trackData = await F1APIService.getTrackData(trackId)
         if (trackData) {
           return trackData
         }
       }
       
-      // Fallback to local data
       const trackData = await F1APIService.getTrackData(trackId)
       return trackData
     } catch (error) {
@@ -408,22 +388,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const { isUsingAPIData } = get()
       
       if (isUsingAPIData) {
-        // Try to get real weather data
         const realWeather = await F1APIService.getWeatherData(trackId)
         if (realWeather) {
-          // Generate forecast based on real weather
           const forecast = generateWeatherForecastFromRealData(realWeather, trackId)
           set({ weatherForecast: forecast })
           return
         }
       }
       
-      // Fallback to simulated weather
       const forecast = generateSimulatedWeatherForecast(trackId)
       set({ weatherForecast: forecast })
     } catch (error) {
       console.error('Load weather forecast error:', error)
-      // Use simulated weather as fallback
       const forecast = generateSimulatedWeatherForecast(trackId)
       set({ weatherForecast: forecast })
     }
@@ -463,12 +439,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
-  // API actions
   refreshAPIData: async () => {
     set({ isLoading: true, apiError: null })
     
     try {
-      // Test Jolpi API connectivity
       const connectivityTest = await F1APIService.testAPIConnectivity()
       
       if (connectivityTest.available) {
@@ -477,7 +451,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           apiError: null,
           isLoading: false
         })
-        // Reload tracks with API data
         await get().loadAvailableTracks()
       } else {
         throw new Error(connectivityTest.error || 'Jolpi API unavailable')
@@ -492,28 +465,23 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
-  // Reset comparison results
   resetComparisonResults: () => set({ comparisonResults: null }),
 
   toggleAPIData: () => {
     const { isUsingAPIData } = get()
     set({ isUsingAPIData: !isUsingAPIData })
-    // Reload tracks with new setting
     get().loadAvailableTracks()
   }
 }))
 
-// Helper functions for weather forecast generation
 function generateWeatherForecastFromRealData(realWeather: any, trackId: string): WeatherForecast[] {
   const forecast: WeatherForecast[] = []
-  // Dynamically get total laps from availableTracks
-  const store = require('./simulationStore');
-  const availableTracks = store.useSimulationStore.getState().availableTracks;
-  const track = availableTracks.find((t: any) => t.id === trackId);
-  const totalLaps = track?.total_laps || 50;
+  const store = require('./simulationStore')
+  const availableTracks = store.useSimulationStore.getState().availableTracks
+  const track = availableTracks.find((t: any) => t.id === trackId)
+  const totalLaps = track?.total_laps || 50
 
   for (let lap = 1; lap <= totalLaps; lap++) {
-    // Use real weather as base and add some variation
     const variation = (Math.random() - 0.5) * 0.2
     const temperature = realWeather.temperature + variation * 5
     const humidity = Math.max(30, Math.min(90, realWeather.humidity + variation * 10))
@@ -535,13 +503,11 @@ function generateWeatherForecastFromRealData(realWeather: any, trackId: string):
 
 function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
   const forecast: WeatherForecast[] = []
-  // Dynamically get total laps from availableTracks
-  const store = require('./simulationStore');
-  const availableTracks = store.useSimulationStore.getState().availableTracks;
-  const track = availableTracks.find((t: any) => t.id === trackId);
-  const totalLaps = track?.total_laps || 50;
+  const store = require('./simulationStore')
+  const availableTracks = store.useSimulationStore.getState().availableTracks
+  const track = availableTracks.find((t: any) => t.id === trackId)
+  const totalLaps = track?.total_laps || 50
 
-  // Track-specific weather patterns
   const weatherPatterns: Record<string, any> = {
     monaco: { rain_probability: 0.3, temperature_variation: 5.0 },
     silverstone: { rain_probability: 0.4, temperature_variation: 8.0 },
@@ -557,16 +523,13 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
   let currentHumidity = 60.0
 
   for (let lap = 1; lap <= totalLaps; lap++) {
-    // Temperature variation
     const temperatureChange = (Math.random() - 0.5) * pattern.temperature_variation
     currentTemperature += temperatureChange
     const trackTemperature = currentTemperature + 10.0 + (Math.random() - 0.5) * 4
 
-    // Humidity changes
     currentHumidity += (Math.random() - 0.5) * 10
     currentHumidity = Math.max(30, Math.min(90, currentHumidity))
 
-    // Rain probability
     let rainProbability = pattern.rain_probability
     if (currentHumidity > 80 && currentTemperature < 20) {
       rainProbability = Math.min(0.8, rainProbability + 0.1)
@@ -574,7 +537,6 @@ function generateSimulatedWeatherForecast(trackId: string): WeatherForecast[] {
       rainProbability = Math.max(0.05, rainProbability - 0.05)
     }
 
-    // Simulate weather changes
     if (rainProbability > 0.6 && Math.random() < 0.1) {
       currentCondition = "wet"
     } else if (currentCondition === "wet" && rainProbability < 0.3) {

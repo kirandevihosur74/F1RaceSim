@@ -1,100 +1,82 @@
 # F1 Race Strategy Simulator
 
-An AI-powered Formula 1 race strategy simulator for fans and strategists. Plan, simulate, and optimize F1 race strategies with real data, advanced weather, and AI recommendations.
+AI-powered Formula 1 race strategy simulator. Plan, simulate, and optimize F1 race strategies with real data, weather, and AI recommendations.
 
 **Live Demo:** [https://f1-race-sim.vercel.app](https://f1-race-sim.vercel.app)
 
 ---
 
-## 🖥️ Demo: How to Use
+## How to Use
 
-1. **Select a Track**
-   - Use the carousel to pick a Formula 1 circuit.
-2. **Configure Your Strategy**
-   - Set pit stop laps, choose tire compounds for each stint, and select a driver style (Conservative, Balanced, Aggressive).
-   - You can add or remove pit stops and tires as needed.
-   - Give your strategy a name.
-3. **Save Your Strategy**
-   - Click "Save Strategy" to store your configuration for comparison or later use.
+1. **Pick a Track**
+   - Use the carousel to select a Formula 1 circuit
+2. **Set Up Strategy**
+   - Choose pit stop laps, tire compounds for each stint, and driver style
+   - Add or remove pit stops and tires as needed
+   - Name your strategy
+3. **Save Strategy**
+   - Click "Save Strategy" to store your config
 4. **Run Simulation**
-   - Click "Run Simulation" to simulate the race with your chosen strategy.
-   - View interactive charts showing lap times, tire wear, and race progression.
-5. **Get AI Strategy Recommendation**
-   - Click "Get AI Strategy Recommendation" to receive expert advice powered by Google Gemini AI.
+   - Click "Run Simulation" to see results
+   - View charts showing lap times, tire wear, and race progress
+5. **Get AI Advice**
+   - Click "Get AI Strategy Recommendation" for expert tips
 6. **Compare Strategies**
-   - Add multiple strategies and use the comparison tool to analyze their performance, risks, and optimization suggestions.
-7. **Check Weather Forecast**
-   - See real or simulated weather data and how it impacts your strategy.
-8. **User Feedback**
-   - Toast notifications will inform you of successful actions, errors, or rate limits.
-  
-**P.S. There is a rate limit on using APIs. If you hit the limit, please try again after sometime or contact @kirandevihosur74@gmail.com** 
+   - Add multiple strategies and compare performance
+7. **Check Weather**
+   - See real or simulated weather data and its impact
+
+**Note: There's a rate limit on APIs. If you hit it, try again later or contact @kirandevihosur74@gmail.com**
 
 ---
 
+## Features
 
-## 🏎️ Features
+- **Track Selection**: Modern carousel for picking circuits
+- **Strategy Builder**: Create and edit multiple strategies
+- **Simulation Engine**: Run races and see results
+- **AI Recommendations**: Get strategy advice from Google Gemini
+- **Weather System**: Real weather data with fallback simulation
+- **Multi-Car Racing**: Simulate up to 20 cars
+- **Strategy Comparison**: Compare up to 5 strategies side-by-side
+- **Interactive Charts**: Visualize results with ApexCharts
 
-### Core Simulation
-- **Track Selector Carousel**: Modern Swiper.js carousel for intuitive track selection
-- **Dynamic Strategy Configuration**: Add, edit, and compare multiple strategies
-- **Separate Save & Run**: "Save Strategy" and "Run Simulation" are distinct actions
-- **Simulation Results**: Interactive charts powered by React-ApexCharts
-- **AI Strategy Recommendations**: Powered by Google Gemini AI (via FastAPI backend)
-- **Toast Notifications**: User feedback for actions and errors
-- **Clean UI/UX**: Redundant elements removed, full-width charts, and modern layout
+## Quick Start
 
-### Data & Weather
-- **Hybrid Data**: 5 local tracks (Monaco, Silverstone, Spa, Monza, Suzuka) + Ergast API for all circuits
-- **Real & Simulated Weather**: OpenWeatherMap API integration, with fallback to simulated weather
-- **Weather Impact**: Lap-by-lap forecast, grip, tire degradation, and strategy adjustments
-
-### Multi-Car & Comparison
-- **Multi-Car Simulation**: Simulate up to 20 cars with individual strategies
-- **Strategy Comparison**: Compare up to 5 strategies, with risk and performance analysis
-
-### AI & Backend
-- **FastAPI Backend**: Deployed on AWS Lambda via AWS SAM
-- **Gemini AI**: AI-powered strategy recommendations
-- **Rate Limiting**: 5 requests/day per endpoint, with admin exemption
-- **Robust Error Handling**: Graceful handling of rate limits, timeouts, and backend errors
-
-## 🚀 Quick Start
-
-### Prerequisites
+### Requirements
 - Node.js 18+
 - Python 3.11+ (for backend)
 - AWS Account (for deployment)
 
-### Installation
+### Setup
 
-1. **Clone the repository**
+1. **Clone the repo**
 ```bash
 git clone https://github.com/kirandevihosur74/F1RaceSim.git
 cd F1RaceSim
 ```
 
-2. **Install frontend dependencies**
+2. **Install frontend deps**
 ```bash
 npm install
 ```
 
-3. **Install backend dependencies**
+3. **Install backend deps**
 ```bash
 cd backend
 python -m venv venv311
-source venv311/bin/activate  # On Windows: venv311\Scripts\activate
+source venv311/bin/activate  # Windows: venv311\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. **Set up environment variables**
+4. **Environment setup**
 ```bash
 cp .env.example .env.local
 # Add your API keys (optional)
 NEXT_PUBLIC_OPENWEATHER_API_KEY=your_weather_api_key
 ```
 
-5. **Start the development server**
+5. **Start dev servers**
 ```bash
 # Terminal 1: Frontend
 npm run dev
@@ -104,71 +86,57 @@ cd backend
 python main.py
 ```
 
-## 🌐 API Integration
+## APIs Used
 
-- **Ergast API**: F1 data for all circuits
+- **Ergast API**: F1 circuit data
 - **OpenWeatherMap API**: Real-time weather
 
-## 🏁 Usage
+## Usage
 
-1. **Select a Track**
-2. **Configure Strategy**: Add/edit pit stops, tires, driver style
-3. **Save Strategy**: Save your configuration
-4. **Run Simulation**: See results in interactive charts
-5. **Get AI Recommendation**: Use Gemini AI for strategy advice
-6. **Compare Strategies**: Analyze multiple strategies side-by-side
+1. Pick a track from the carousel
+2. Configure your strategy (pit stops, tires, driver style)
+3. Save your strategy
+4. Run the simulation
+5. Get AI recommendations
+6. Compare multiple strategies
 
-## 🏗️ Architecture
+## Architecture
 
-### Frontend (Next.js)
-- **React 18**
-- **TypeScript**
-- **Tailwind CSS**
-- **Zustand** (state management)
-- **Swiper.js** (carousel)
-- **React-ApexCharts** (visualization)
-- **react-hot-toast** (notifications)
+### Frontend
+- React 18 + TypeScript
+- Tailwind CSS for styling
+- Zustand for state management
+- Swiper.js for track carousel
+- ApexCharts for data visualization
 
-### Backend (Python/FastAPI)
-- **FastAPI**
-- **Google Gemini AI**
-- **AWS Lambda** (serverless)
-- **Rate Limiting** (slowapi)
+### Backend
+- FastAPI with Python
+- Google Gemini AI integration
+- AWS Lambda deployment
+- Rate limiting (5 requests/day per endpoint)
+
 ### Data Flow
 ```
-Frontend → Next.js API Routes → FastAPI Backend (AWS Lambda) → Gemini AI & External APIs
+Frontend → Next.js API Routes → FastAPI Backend → Gemini AI & External APIs
 ```
 
-## 🚀 Deployment
+## Deployment
 
-### AWS Deployment
+### Backend (AWS)
 ```bash
 cd backend
 sam build
 sam deploy --guided
 ```
 
-### Frontend Deployment
+### Frontend (Vercel)
 ```bash
 npm run build
 vercel --prod
 ```
 
-### Environment Setup
-- **AWS Secrets Manager**: Store API keys
-- **CORS**: Allow frontend-backend communication
-- **API Gateway**: Lambda endpoints
+## Testing
 
-## 📊 Key Components
-- **TrackSelector**: Swiper.js carousel for tracks
-- **WeatherForecast**: Real/simulated weather, lap-by-lap
-- **RaceStrategyForm**: Dynamic, multi-strategy config
-- **SimulationResultsChart**: Interactive ApexCharts
-- **StrategyRecommendations**: Gemini AI-powered advice
-- **StrategyComparison**: Multi-strategy analysis
-- **Toast Notifications**: User feedback for all actions
-
-## 🧪 Testing
 ```bash
 # Frontend tests
 npm test
@@ -178,15 +146,10 @@ cd backend
 python -m pytest
 ```
 
-## 📈 Performance & UX
-- **API Rate Limiting**
-- **Error Handling**
-- **Modern, Responsive UI**
-- **User Feedback via Toasts**
+## Contributing
 
-## 🤝 Contributing
-1. Fork this repository
+1. Fork the repo
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Add tests if needed
 5. Submit a pull request
