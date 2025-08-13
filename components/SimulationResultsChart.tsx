@@ -60,7 +60,7 @@ const SimulationResultsChart: React.FC = () => {
   const strategyName = strategy?.name
 
   // ApexCharts options
-  const axisColor = isDark ? '#cbd5e1' : '#374151';
+  const axisColor = isDark ? '#cbd5e1' : '#000000'; // Pure black for max contrast in light mode
   const gridColor = isDark ? '#334155' : '#e5e7eb';
   const legendColor = isDark ? '#cbd5e1' : '#374151';
   const options = {
@@ -69,7 +69,7 @@ const SimulationResultsChart: React.FC = () => {
       toolbar: { show: false },
       zoom: { enabled: true },
       fontFamily: 'inherit',
-      foreColor: axisColor,
+      foreColor: axisColor, // fallback
     },
     stroke: { width: [3, 2], curve: 'smooth' as const },
     colors: ['#E10600', '#1E3A8A'],
@@ -123,8 +123,7 @@ const SimulationResultsChart: React.FC = () => {
       position: 'top' as const,
       fontSize: '14px',
       fontWeight: 500,
-      labels: { colors: legendColor },
-      // Use default markers
+      labels: { colors: axisColor },
     },
     annotations: {
       xaxis: pitStops.map((lap, idx) => ({
