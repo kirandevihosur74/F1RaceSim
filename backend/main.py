@@ -78,17 +78,17 @@ class RecommendationResponse(BaseModel):
     recommendation: Dict[str, Any]
 
 @app.get("/")
-@limiter.limit("5/day")
+@limiter.limit("3/day")
 async def root(request: Request):
     return {"message": "F1 Race Simulator API", "version": "1.0.0"}
 
 @app.get("/health")
-@limiter.limit("5/day")
+@limiter.limit("3/day")
 async def health_check(request: Request):
     return {"status": "healthy", "service": "f1-race-simulator"}
 
 @app.post("/simulate-race", response_model=SimulationResponse)
-@limiter.limit("5/day")
+@limiter.limit("3/day")
 async def simulate_race_endpoint(request: Request, body: SimulationRequest):
     """
     Simulate a Formula 1 race with given strategy parameters.
@@ -117,7 +117,7 @@ async def simulate_race_endpoint(request: Request, body: SimulationRequest):
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 @app.post("/strategy-recommendation", response_model=RecommendationResponse)
-@limiter.limit("5/day")
+@limiter.limit("3/day")
 async def strategy_recommendation_endpoint(request: Request, body: StrategyRecommendationRequest):
     """
     Get AI-generated strategy recommendations based on race scenario.

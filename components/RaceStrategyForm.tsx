@@ -214,8 +214,19 @@ const RaceStrategyForm = () => {
                   type="number"
                   min="1"
                   max={selectedTrackDetails?.total_laps || 58}
-                  value={lap}
-                  onChange={(e) => handlePitStopChange(index, parseInt(e.target.value) || 0)}
+                  value={lap || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      // Allow empty input temporarily - don't update state
+                      return;
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue) && numValue > 0) {
+                        handlePitStopChange(index, numValue);
+                      }
+                    }
+                  }}
                   className="input-field flex-1"
                   placeholder="Lap number"
                 />

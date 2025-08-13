@@ -114,12 +114,12 @@ const TrackSelector = () => {
             <SwiperSlide key={track.id}>
               <button
                 className={`
-                  relative bg-white dark:bg-gray-800 rounded-xl shadow-md flex flex-col justify-between
+                  relative bg-white dark:bg-gray-800 rounded-3xl flex flex-col justify-between
                   border-2 border-gray-200 dark:border-gray-700 w-full h-[260px] text-left transition overflow-hidden
                   text-gray-900 dark:text-gray-100
                   ${selectedTrack === track.id 
-                    ? 'border-blue-600 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-500' 
-                    : 'hover:border-blue-400 hover:shadow-lg'}
+                    ? 'border-blue-600 dark:border-blue-400' 
+                    : 'hover:border-blue-400'}
                 `}
                 onClick={() => handleTrackChange(track.id)}
                 style={{ zIndex: selectedTrack === track.id ? 1 : 0 }}
@@ -128,7 +128,7 @@ const TrackSelector = () => {
                   src={getFlagUrl(track.country)}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none rounded-xl"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none rounded-3xl"
                   style={{ filter: 'grayscale(30%)', opacity: 0.15 }}
                 />
                 

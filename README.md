@@ -113,7 +113,7 @@ python main.py
 - FastAPI with Python
 - Google Gemini AI integration
 - AWS Lambda deployment
-- Rate limiting (5 requests/day per endpoint)
+- Rate limiting (3 requests/day per endpoint)
 
 ### Data Flow
 ```
