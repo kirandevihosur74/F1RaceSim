@@ -7,13 +7,13 @@
 
 ## Step 1: AWS Account Setup
 
-### 1.1 Create AWS Account
+### Create AWS Account
 1. Go to [AWS Console](https://aws.amazon.com/)
 2. Click "Create an AWS Account"
 3. Follow the signup process
 4. **Important**: Set up billing alerts to avoid unexpected charges
 
-### 1.2 Create IAM User (Recommended)
+### Create IAM User
 Instead of using root credentials, create a dedicated IAM user:
 
 ```bash
@@ -25,7 +25,7 @@ unzip awscliv2.zip
 sudo ./aws/install
 ```
 
-### 1.3 Configure AWS CLI
+### Configure AWS CLI
 ```bash
 aws configure
 # Enter your AWS Access Key ID
@@ -34,9 +34,9 @@ aws configure
 # Enter your output format (json)
 ```
 
-## Step 2: Required AWS Services Setup
+## Step 2: AWS Services Setup
 
-### 2.1 S3 Bucket for Data Storage
+### S3 Buckets
 ```bash
 # Create S3 bucket for race data
 aws s3 mb s3://f1-race-sim-data-$(date +%s)
@@ -45,7 +45,7 @@ aws s3 mb s3://f1-race-sim-data-$(date +%s)
 aws s3 mb s3://f1-race-sim-assets-$(date +%s)
 ```
 
-### 2.2 DynamoDB Table
+### DynamoDB Table
 ```bash
 # Create DynamoDB table for simulation results
 aws dynamodb create-table \
@@ -55,17 +55,17 @@ aws dynamodb create-table \
     --billing-mode PAY_PER_REQUEST
 ```
 
-### 2.3 Lambda Function Setup
-The SAM template will handle Lambda creation, but you need to ensure:
+### Lambda Function
+The SAM template will handle Lambda creation, but ensure:
 - Lambda execution role has proper permissions
 - Environment variables are configured
 
-### 2.4 API Gateway
+### API Gateway
 Will be created automatically by SAM template.
 
 ## Step 3: Environment Variables
 
-### 3.1 Create .env file
+### Backend Environment
 ```bash
 # Backend environment variables
 cp backend/.env.example backend/.env
@@ -92,7 +92,7 @@ OPENAI_API_KEY=your_openai_api_key
 NEXT_PUBLIC_API_URL=https://your-api-gateway-url.amazonaws.com/prod
 ```
 
-### 3.2 Frontend Environment
+### Frontend Environment
 Create `.env.local` in the root directory:
 ```env
 NEXT_PUBLIC_API_URL=https://your-api-gateway-url.amazonaws.com/prod
@@ -101,7 +101,7 @@ NEXT_PUBLIC_S3_BUCKET=f1-race-sim-assets-123456789
 
 ## Step 4: IAM Permissions
 
-### 4.1 Create IAM Policy
+### Create IAM Policy
 ```json
 {
     "Version": "2012-10-17",
@@ -146,12 +146,12 @@ NEXT_PUBLIC_S3_BUCKET=f1-race-sim-assets-123456789
 }
 ```
 
-### 4.2 Attach Policy to Lambda Role
+### Attach Policy to Lambda Role
 The SAM template will handle this automatically.
 
 ## Step 5: Deployment
 
-### 5.1 Install AWS SAM CLI
+### Install AWS SAM CLI
 ```bash
 # macOS
 brew install aws-sam-cli
@@ -160,7 +160,7 @@ brew install aws-sam-cli
 pip install aws-sam-cli
 ```
 
-### 5.2 Build and Deploy
+### Build and Deploy
 ```bash
 # Build the SAM application
 sam build
@@ -169,7 +169,7 @@ sam build
 sam deploy --guided
 ```
 
-### 5.3 Verify Deployment
+### Verify Deployment
 ```bash
 # List deployed resources
 sam list resources
@@ -180,33 +180,33 @@ curl https://your-api-gateway-url.amazonaws.com/prod/health
 
 ## Step 6: Monitoring and Logging
 
-### 6.1 CloudWatch Logs
+### CloudWatch Logs
 - Lambda function logs are automatically sent to CloudWatch
 - Set up log retention policies
 - Create CloudWatch alarms for errors
 
-### 6.2 Cost Monitoring
+### Cost Monitoring
 - Set up AWS Budgets
 - Monitor Lambda execution costs
 - Track S3 and DynamoDB usage
 
 ## Step 7: Security Best Practices
 
-### 7.1 Enable AWS CloudTrail
+### Enable AWS CloudTrail
 ```bash
 aws cloudtrail create-trail \
     --name f1-race-sim-trail \
     --s3-bucket-name f1-race-sim-data-123456789
 ```
 
-### 7.2 Enable S3 Versioning
+### Enable S3 Versioning
 ```bash
 aws s3api put-bucket-versioning \
     --bucket f1-race-sim-data-123456789 \
     --versioning-configuration Status=Enabled
 ```
 
-### 7.3 Enable DynamoDB Point-in-Time Recovery
+### Enable DynamoDB Point-in-Time Recovery
 ```bash
 aws dynamodb update-continuous-backups \
     --table-name f1-simulation-results \
@@ -215,13 +215,13 @@ aws dynamodb update-continuous-backups \
 
 ## Troubleshooting
 
-### Common Issues:
-1. **Permission Denied**: Check IAM roles and policies
-2. **Timeout Errors**: Increase Lambda timeout in SAM template
-3. **Cold Start**: Use provisioned concurrency for better performance
-4. **CORS Issues**: Configure API Gateway CORS settings
+### Common Issues
+1. **Permission Denied** - Check IAM roles and policies
+2. **Timeout Errors** - Increase Lambda timeout in SAM template
+3. **Cold Start** - Use provisioned concurrency for better performance
+4. **CORS Issues** - Configure API Gateway CORS settings
 
-### Useful Commands:
+### Useful Commands
 ```bash
 # Check Lambda function status
 aws lambda get-function --function-name f1-race-sim-api
@@ -238,13 +238,13 @@ aws dynamodb describe-table --table-name f1-simulation-results
 
 ## Cost Estimation
 
-### Free Tier (First 12 months):
+### Free Tier (First 12 months)
 - Lambda: 1M requests/month
 - S3: 5GB storage
 - DynamoDB: 25GB storage
 - API Gateway: 1M requests/month
 
-### Estimated Monthly Cost (after free tier):
+### Estimated Monthly Cost (after free tier)
 - Lambda: ~$1-5/month
 - S3: ~$0.50-2/month
 - DynamoDB: ~$1-3/month

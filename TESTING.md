@@ -1,8 +1,8 @@
-# 🧪 Testing Guide - F1 Race Simulator
+# Testing Guide - F1 Race Simulator
 
-This guide covers all aspects of testing the F1 Race Simulator application, including frontend, backend, and end-to-end tests.
+This guide covers testing the F1 Race Simulator application, including frontend, backend, and end-to-end tests.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Quick Start](#quick-start)
 - [Frontend Testing](#frontend-testing)
@@ -13,7 +13,7 @@ This guide covers all aspects of testing the F1 Race Simulator application, incl
 - [Test Coverage](#test-coverage)
 - [Continuous Integration](#continuous-integration)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -41,7 +41,7 @@ pytest
 npm run test:e2e
 ```
 
-## 🎨 Frontend Testing
+## Frontend Testing
 
 ### Unit Tests (Jest + React Testing Library)
 
@@ -153,7 +153,7 @@ it('should call API and update state', async () => {
 })
 ```
 
-## 🐍 Backend Testing
+## Backend Testing
 
 ### Unit Tests (Pytest)
 
@@ -270,7 +270,7 @@ def test_simulate_race_endpoint():
     assert len(data["simulation"]) == 58
 ```
 
-## 🌐 End-to-End Testing
+## End-to-End Testing
 
 ### Playwright Tests
 
@@ -334,7 +334,7 @@ tests/
 └── playwright.config.ts
 ```
 
-## 🔧 API Testing
+## API Testing
 
 ### Manual API Testing
 
@@ -405,7 +405,7 @@ class TestSimulationAPI:
         assert response.status_code == 422  # Validation error
 ```
 
-## ⚡ Performance Testing
+## Performance Testing
 
 ### Load Testing
 
@@ -485,7 +485,7 @@ def test_simulation_performance():
     assert len(results) == 58
 ```
 
-## 📊 Test Coverage
+## Test Coverage
 
 ### Frontend Coverage
 
@@ -528,7 +528,7 @@ exclude_lines =
     raise NotImplementedError
 ```
 
-## 🔄 Continuous Integration
+## Continuous Integration
 
 ### GitHub Actions Workflow
 
@@ -572,7 +572,7 @@ jobs:
       - run: npm run test:e2e
 ```
 
-## 🐛 Debugging Tests
+## Debugging Tests
 
 ### Frontend Debugging
 
@@ -610,7 +610,7 @@ npx playwright test --debug
 npx playwright test --headed --project=chromium
 ```
 
-## 📝 Test Data
+## Test Data
 
 ### Mock Data
 
@@ -658,7 +658,7 @@ def sample_simulation_response():
     }
 ```
 
-## 🎯 Best Practices
+## Best Practices
 
 ### General Testing Principles
 
@@ -694,7 +694,7 @@ def sample_simulation_response():
 4. **Test with realistic data volumes**
 5. **Automate performance regression testing**
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [Jest Documentation](https://jestjs.io/docs/getting-started)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
@@ -702,7 +702,7 @@ def sample_simulation_response():
 - [Playwright Documentation](https://playwright.dev/docs/intro)
 - [FastAPI Testing](https://fastapi.tiangolo.com/tutorial/testing/)
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 

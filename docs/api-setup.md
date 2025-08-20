@@ -1,31 +1,30 @@
 # API Setup Guide
 
-This guide explains how to set up the hybrid API approach for the F1 Race Strategy Simulator.
+This guide covers the hybrid API approach used in the F1 Race Strategy Simulator.
 
 ## Overview
 
-The application uses a hybrid approach that combines:
-- **Local Data**: Pre-configured track data for 5 major F1 circuits
-- **Jolpi API**: F1 data from Jolpi API when available
-- **Fallback**: Automatic fallback to local data when API is unavailable
+The app combines:
+- **Local Data** - Pre-configured track data for major F1 circuits
+- **Jolpi API** - F1 data when available
+- **Fallback** - Automatic fallback to local data
 
 ## Data Sources
 
-### 1. Jolpi API (F1 Data)
+### Jolpi API (F1 Data)
 - **URL**: https://api.jolpi.ca/ergast/f1
 - **Purpose**: Circuit information, lap records, race results
 - **Cost**: Free
-- **Status**: Active F1 data API
 - **Data**: All F1 circuits, historical data, lap times
 
-### 2. OpenWeatherMap API (Weather Data)
+### OpenWeatherMap API (Weather)
 - **URL**: https://api.openweathermap.org/data/2.5/weather
-- **Purpose**: Real-time weather conditions at track locations
-- **Cost**: Free tier available (1000 calls/day)
-- **Rate Limits**: 60 calls/minute for free tier
-- **Data**: Temperature, humidity, wind speed, conditions
+- **Purpose**: Real-time weather at track locations
+- **Cost**: Free tier (1000 calls/day)
+- **Rate Limits**: 60 calls/minute
+- **Data**: Temperature, humidity, wind, conditions
 
-## Environment Variables
+## Environment Setup
 
 Create a `.env.local` file in your project root:
 
@@ -38,38 +37,37 @@ NEXT_PUBLIC_JOLPI_BASE_URL=https://api.jolpi.ca/ergast/f1
 NEXT_PUBLIC_WEATHER_BASE_URL=https://api.openweathermap.org/data/2.5
 ```
 
-## API Key Setup
+## Getting API Keys
 
-### OpenWeatherMap API Key
+### OpenWeatherMap
 1. Go to [OpenWeatherMap](https://openweathermap.org/)
 2. Sign up for a free account
-3. Navigate to "API keys" section
-4. Copy your API key
-5. Add it to `.env.local`
+3. Get your API key from the "API keys" section
+4. Add it to `.env.local`
 
-**Note**: The application works without the weather API key, but will use simulated weather data instead.
+**Note**: The app works without the weather API key but will use simulated weather instead.
 
 ## How the Hybrid System Works
 
-### Track Data Flow
-1. **Local Priority**: Known tracks (Monaco, Silverstone, Spa, Monza, Suzuka) use local data
-2. **API Enhancement**: Unknown tracks fetch from Jolpi API
-3. **Default Values**: Missing data (sectors, tire degradation) uses sensible defaults
-4. **Graceful Fallback**: Automatic fallback to local data when API is unavailable
+### Track Data
+1. **Local Priority** - Known tracks use local data
+2. **API Enhancement** - Unknown tracks fetch from Jolpi API
+3. **Default Values** - Missing data uses sensible defaults
+4. **Graceful Fallback** - Automatic fallback when API is unavailable
 
-### Weather Data Flow
-1. **API First**: If OpenWeatherMap API key is available, fetch real weather
-2. **Simulated Fallback**: Generate realistic weather based on track location
-3. **Forecast Generation**: Create lap-by-lap weather forecast
+### Weather Data
+1. **API First** - If OpenWeatherMap key is available, fetch real weather
+2. **Simulated Fallback** - Generate realistic weather based on track location
+3. **Forecast Generation** - Create lap-by-lap weather forecast
 
-### API Status Indicators
-- **Green Dot**: Using API data
-- **Yellow Dot**: Using local/simulated data
-- **Error Banner**: API unavailable, showing fallback status
+### Status Indicators
+- **Green Dot** - Using API data
+- **Yellow Dot** - Using local/simulated data
+- **Error Banner** - API unavailable, showing fallback status
 
 ## API Endpoints
 
-### Frontend API Routes
+### Frontend Routes
 - `GET /api/tracks?action=list` - Get all tracks
 - `GET /api/tracks?action=details&track_id=X` - Get track details
 - `GET /api/tracks?action=weather&track_id=X` - Get weather data
@@ -82,39 +80,39 @@ NEXT_PUBLIC_WEATHER_BASE_URL=https://api.openweathermap.org/data/2.5
 
 ## Error Handling
 
-The system gracefully handles API failures:
+The system handles failures gracefully:
 
-1. **Network Errors**: Automatic fallback to local data
-2. **API Unavailable**: Uses local data when Jolpi API is down
-3. **Rate Limits**: Exponential backoff and retry
-4. **Invalid Data**: Validation and default values
-5. **Missing API Keys**: Simulated data generation
+1. **Network Errors** - Automatic fallback to local data
+2. **API Unavailable** - Uses local data when Jolpi API is down
+3. **Rate Limits** - Exponential backoff and retry
+4. **Invalid Data** - Validation and default values
+5. **Missing API Keys** - Simulated data generation
 
-## Performance Considerations
+## Performance
 
 ### Caching
 - Track data is cached in the store
-- Weather data is refreshed on track change
+- Weather data refreshes on track change
 - API status is checked periodically
 
 ### Rate Limiting
 - OpenWeatherMap: 60 calls/minute (free tier)
 - Jolpi API: No documented limits
-- Implement exponential backoff for failures
+- Exponential backoff for failures
 
 ### Data Size
 - Local track data: ~5KB
 - API responses: ~1-10KB per request
 - Weather forecast: ~2KB per track
 
-## Testing the Hybrid System
+## Testing
 
-### Test API Availability
+### Check API Availability
 ```bash
-# Check if Jolpi API is working
+# Test Jolpi API
 curl "https://api.jolpi.ca/ergast/f1/circuits.json"
 
-# Check weather API (requires key)
+# Test weather API (requires key)
 curl "https://api.openweathermap.org/data/2.5/weather?lat=52.0736&lon=-1.0167&appid=YOUR_KEY"
 ```
 
@@ -135,7 +133,7 @@ curl "https://api.openweathermap.org/data/2.5/weather?lat=52.0736&lon=-1.0167&ap
 
 **Jolpi API Not Available**
 - Check internet connection
-- Verify API endpoint is accessible
+- Verify API endpoint accessibility
 - Check if Jolpi API is experiencing downtime
 - Local data provides comprehensive fallback
 
@@ -165,31 +163,31 @@ console.log('API Test:', await F1APIService.testAPIConnectivity())
 
 ## Alternative Data Sources
 
-If Jolpi API becomes unavailable, consider these alternatives:
+If Jolpi API becomes unavailable, consider:
 
 ### Free Options
-- **FastF1 Library**: Python library with F1 data
-- **F1 API**: Unofficial F1 data APIs
-- **Sports APIs**: General sports data providers
+- **FastF1 Library** - Python library with F1 data
+- **F1 API** - Unofficial F1 data APIs
+- **Sports APIs** - General sports data providers
 
 ### Paid Options
-- **Official F1 API**: Requires partnership
-- **Sports Data Providers**: ESPN, Sportradar, etc.
-- **Custom Solutions**: Build your own data collection
+- **Official F1 API** - Requires partnership
+- **Sports Data Providers** - ESPN, Sportradar, etc.
+- **Custom Solutions** - Build your own data collection
 
 ## Future Enhancements
 
 ### Additional APIs
-- **F1 Live Timing**: Real-time race data
-- **Weather Radar**: Precipitation probability
-- **Track Telemetry**: Sector times, tire wear
+- **F1 Live Timing** - Real-time race data
+- **Weather Radar** - Precipitation probability
+- **Track Telemetry** - Sector times, tire wear
 
 ### Data Improvements
-- **Historical Weather**: Track-specific weather patterns
-- **Driver Data**: Individual driver characteristics
-- **Car Data**: Team-specific performance data
+- **Historical Weather** - Track-specific weather patterns
+- **Driver Data** - Individual driver characteristics
+- **Car Data** - Team-specific performance data
 
 ### Performance Optimizations
-- **Service Workers**: Offline data caching
-- **CDN**: Static data distribution
-- **WebSockets**: Real-time updates 
+- **Service Workers** - Offline data caching
+- **CDN** - Static data distribution
+- **WebSockets** - Real-time updates 

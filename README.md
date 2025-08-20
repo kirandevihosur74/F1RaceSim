@@ -1,67 +1,52 @@
 # F1 Race Strategy Simulator
 
-AI-powered Formula 1 race strategy simulator. Plan, simulate, and optimize F1 race strategies with real data, weather, and AI recommendations.
+A Formula 1 race strategy simulator that helps you plan, simulate, and optimize race strategies with real data, weather conditions, and AI recommendations.
 
 **Live Demo:** [https://f1-race-sim.vercel.app](https://f1-race-sim.vercel.app)
 
 ---
 
-## How to Use
+## Getting Started
 
-1. **Pick a Track**
-   - Use the carousel to select a Formula 1 circuit
-2. **Set Up Strategy**
-   - Choose pit stop laps, tire compounds for each stint, and driver style
-   - Add or remove pit stops and tires as needed
-   - Name your strategy
-3. **Save Strategy**
-   - Click "Save Strategy" to store your config
-4. **Run Simulation**
-   - Click "Run Simulation" to see results
-   - View charts showing lap times, tire wear, and race progress
-5. **Get AI Advice**
-   - Click "Get AI Strategy Recommendation" for expert tips
-6. **Compare Strategies**
-   - Add multiple strategies and compare performance
-7. **Check Weather**
-   - See real or simulated weather data and its impact
+1. **Choose a Track** - Pick from the available F1 circuits
+2. **Build Your Strategy** - Set pit stop laps, tire compounds, and driving style
+3. **Save & Run** - Save your strategy and run the simulation
+4. **Get AI Tips** - Receive strategy recommendations from AI
+5. **Compare Results** - Test multiple strategies side by side
+6. **Check Weather** - See how weather affects your race
 
-**Note: There's a rate limit on APIs. If you hit it, try again later or contact @kirandevihosur74@gmail.com**
+**Note:** API rate limits apply. Contact @kirandevihosur74@gmail.com if you need help.
 
 ---
 
-## Features
+## What It Does
 
-- **Track Selection**: Modern carousel for picking circuits
-- **Strategy Builder**: Create and edit multiple strategies
-- **Simulation Engine**: Run races and see results
-- **AI Recommendations**: Get strategy advice from Google Gemini
-- **Weather System**: Real weather data with fallback simulation
-- **Multi-Car Racing**: Simulate up to 20 cars
-- **Strategy Comparison**: Compare up to 5 strategies side-by-side
-- **Interactive Charts**: Visualize results with ApexCharts
+- **Track Selection** - Modern carousel for circuit selection
+- **Strategy Builder** - Create and edit multiple strategies
+- **Race Simulation** - Run races and view detailed results
+- **AI Recommendations** - Get strategy advice from Google Gemini
+- **Weather Integration** - Real weather data with fallback simulation
+- **Multi-Car Racing** - Simulate up to 20 cars
+- **Strategy Comparison** - Compare up to 5 strategies
+- **Interactive Charts** - Visualize results with ApexCharts
 
-## Quick Start
+## Setup
 
-### Requirements
+### Prerequisites
 - Node.js 18+
-- Python 3.11+ (for backend)
-- AWS Account (for deployment)
+- Python 3.11+ (backend)
+- AWS Account (deployment)
 
-### Setup
+### Installation
 
-1. **Clone the repo**
+1. **Clone and setup**
 ```bash
 git clone https://github.com/kirandevihosur74/F1RaceSim.git
 cd F1RaceSim
-```
-
-2. **Install frontend deps**
-```bash
 npm install
 ```
 
-3. **Install backend deps**
+2. **Backend setup**
 ```bash
 cd backend
 python -m venv venv311
@@ -69,14 +54,14 @@ source venv311/bin/activate  # Windows: venv311\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. **Environment setup**
+3. **Environment**
 ```bash
 cp .env.example .env.local
 # Add your API keys (optional)
 NEXT_PUBLIC_OPENWEATHER_API_KEY=your_weather_api_key
 ```
 
-5. **Start dev servers**
+4. **Run development servers**
 ```bash
 # Terminal 1: Frontend
 npm run dev
@@ -86,32 +71,31 @@ cd backend
 python main.py
 ```
 
-## APIs Used
+## APIs
 
-- **Ergast API**: F1 circuit data
-- **OpenWeatherMap API**: Real-time weather
+- **Ergast API** - F1 circuit data
+- **OpenWeatherMap API** - Real-time weather
 
-## Usage
+## How It Works
 
-1. Pick a track from the carousel
+1. Select a track from the carousel
 2. Configure your strategy (pit stops, tires, driver style)
-3. Save your strategy
-4. Run the simulation
-5. Get AI recommendations
-6. Compare multiple strategies
+3. Save and run the simulation
+4. Get AI recommendations
+5. Compare different strategies
 
 ## Architecture
 
 ### Frontend
 - React 18 + TypeScript
-- Tailwind CSS for styling
-- Zustand for state management
-- Swiper.js for track carousel
-- ApexCharts for data visualization
+- Tailwind CSS
+- Zustand state management
+- Swiper.js carousel
+- ApexCharts visualization
 
 ### Backend
 - FastAPI with Python
-- Google Gemini AI integration
+- Google Gemini AI
 - AWS Lambda deployment
 - Rate limiting (3 requests/day per endpoint)
 
@@ -148,7 +132,7 @@ python -m pytest
 
 ## Contributing
 
-1. Fork the repo
+1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if needed
