@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Moon, Sun, LogIn } from 'lucide-react'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { useLogoutTracking } from '../lib/hooks/useLogoutTracking'
 
 interface HeaderProps {
   onOpenLogin: () => void
@@ -10,6 +11,7 @@ interface HeaderProps {
 const Header = ({ onOpenLogin }: HeaderProps) => {
   const [isDark, setIsDark] = useState(false)
   const { data: session, status } = useSession()
+  const { handleLogout } = useLogoutTracking()
 
   useEffect(() => {
     // Check if user has a saved theme preference
@@ -37,7 +39,7 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
 
   const handleSignOut = async () => {
     try {
-      await signOut({ callbackUrl: '/' })
+      await handleLogout()
     } catch (error) {
       console.error('Sign out error:', error)
     }

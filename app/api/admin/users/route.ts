@@ -89,6 +89,15 @@ export async function GET(request: NextRequest) {
           }
         }
         
+        // Check if user session has expired (inactive after 30 minutes of inactivity)
+        const lastActivityTime = new Date(lastActive).getTime()
+        const currentTime = Date.now()
+        const thirtyMinutes = 30 * 60 * 1000 // 30 minutes in milliseconds
+        
+        if (currentTime - lastActivityTime > thirtyMinutes) {
+          status = 'inactive'
+        }
+        
         // If no last active, use the most recent strategy or simulation
         if (!lastActive || lastActive === profile.created_at) {
           const recentItems = [...userStrategies, ...userSimulations]

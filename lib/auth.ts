@@ -86,26 +86,6 @@ export const authOptions = {
       }
       return token
     },
-
-    async signOut({ token }: any) {
-      // Track user logout
-      if (token?.sub) {
-        try {
-          await fetch(`${getNextAuthUrl()}/api/users/logout`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: token.sub,
-              logoutTime: new Date().toISOString()
-            }),
-          })
-        } catch (error) {
-          console.error('Error tracking logout:', error)
-        }
-      }
-    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   // Set the base URL dynamically
