@@ -132,6 +132,7 @@ interface SimulationStore {
   runSimulation: (weather?: string) => Promise<void>
   runMultiCarSimulation: (carConfigs: any[], weather?: string) => Promise<void>
   getStrategyRecommendation: (scenario: string) => Promise<void>
+  clearRecommendations: () => void
   
   setSelectedTrack: (trackId: string) => void
   loadAvailableTracks: () => Promise<void>
@@ -322,6 +323,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
 
+  clearRecommendations: () => set({ recommendations: null }),
+
   setSelectedTrack: (trackId) => {
     set({ selectedTrack: trackId })
   },
@@ -425,8 +428,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         }),
       })
 
+      if (response.status === 429) {
+        const errorData = await response.json()
+        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy comparisons allowed today.'
+        if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
+          msg = 'Rate limit exceeded: You have reached the maximum number of strategy comparisons allowed today.'
+        }
+        throw new Error(msg)
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to compare strategies')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to compare strategies')
       }
 
       const data = await response.json()
@@ -437,6 +450,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } catch (error) {
       console.error('Strategy comparison error:', error)
       set({ isLoading: false })
+      throw error // Re-throw the error so the component can handle it
     }
   },
 

@@ -1,6 +1,21 @@
 import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 
+// Dynamically determine the NEXTAUTH_URL based on environment
+const getNextAuthUrl = () => {
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL
+  }
+  
+  // Fallback for Vercel deployment
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:3000'
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -26,4 +41,11 @@ export const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  // Set the base URL dynamically
+  basePath: '/api/auth',
+  // Ensure proper URL handling
+  useSecureCookies: process.env.NODE_ENV === 'production',
 }
+
+// Export the URL for use in other parts of the app
+export const nextAuthUrl = getNextAuthUrl()

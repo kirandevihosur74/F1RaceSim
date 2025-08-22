@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'
-import { Brain, Lightbulb, TrendingUp } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Brain, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
 
 const StrategyRecommendations = () => {
@@ -13,12 +13,22 @@ const StrategyRecommendations = () => {
     setActiveStrategy
   } = useSimulationStore()
   
+  const [error, setError] = useState<string | null>(null)
+  
   const strategy = strategies.find(s => s.id === activeStrategyId) || strategies[0]
 
-  const handleGetRecommendation = () => {
+  const handleGetRecommendation = async () => {
     if (strategy && strategy.pit_stops.length > 0 && strategy.tires.length > 0) {
+      setError(null) // Clear any previous errors
       const scenario = `Pit stops at laps ${strategy.pit_stops.join(', ')}, using ${strategy.tires.join(' → ')}, driver style: ${strategy.driver_style}`
-      getStrategyRecommendation(scenario)
+      
+      try {
+        await getStrategyRecommendation(scenario)
+      } catch (err: any) {
+        setError(err.message || 'Failed to get strategy recommendation')
+        // Clear old recommendations when there's an error
+        useSimulationStore.getState().clearRecommendations?.()
+      }
     }
   }
 
@@ -32,6 +42,11 @@ const StrategyRecommendations = () => {
     addStrategy(newStrategy)
     setActiveStrategy(`strategy-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`)
   }
+
+  // Clear error when strategy changes
+  useEffect(() => {
+    setError(null)
+  }, [activeStrategyId])
 
   if (!strategy) {
     return (
@@ -54,12 +69,30 @@ const StrategyRecommendations = () => {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Strategy Recommendations</h2>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">Error</h3>
+              <p className="text-red-700 dark:text-red-300">{error}</p>
+              {error.includes('Rate limit exceeded') && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                  Please try again tomorrow or upgrade your plan for unlimited recommendations.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-f1-blue"></div>
           <span className="ml-2 text-gray-600 dark:text-gray-300">Analyzing strategy...</span>
         </div>
-      ) : recommendations ? (
+      ) : recommendations && !error ? (
         <div className="space-y-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-lg p-4">
             <div className="flex items-start space-x-3">
@@ -114,8 +147,6 @@ const StrategyRecommendations = () => {
           </button>
         </div>
       )}
-      
-
     </div>
   )
 }

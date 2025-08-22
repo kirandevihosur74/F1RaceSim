@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { BarChart3, Plus } from 'lucide-react'
+import { BarChart3, Plus, AlertCircle } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
-import { showSuccessToast } from '../lib/toast'
+import { showSuccessToast, showErrorToast } from '../lib/toast'
 
 const StrategyComparison = () => {
   const { 
@@ -16,8 +16,21 @@ const StrategyComparison = () => {
     resetComparisonResults
   } = useSimulationStore()
 
-  const handleCompareStrategies = () => {
-    compareStrategies(strategies)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleCompareStrategies = async () => {
+    setError(null) // Clear any previous errors
+    
+    try {
+      await compareStrategies(strategies)
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to compare strategies'
+      setError(errorMessage)
+      showErrorToast(errorMessage)
+      
+      // Clear old comparison results when there's an error
+      resetComparisonResults()
+    }
   }
 
   const getRiskColor = (riskScore: number) => {
@@ -62,6 +75,24 @@ const StrategyComparison = () => {
             <span>New Strategy</span>
           </button>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">Error</h3>
+                <p className="text-red-700 dark:text-red-300">{error}</p>
+                {error.includes('Rate limit exceeded') && (
+                  <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                    Please try again tomorrow or upgrade your plan for unlimited comparisons.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         {strategies.length === 0 ? (
           <div className="text-center py-8">
