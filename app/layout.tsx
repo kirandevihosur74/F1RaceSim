@@ -3,21 +3,24 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
+import Providers from '../components/Providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'F1 Race Simulator - AI-Powered Strategy Analysis',
-  description: 'Simulate Formula 1 race strategies, predict outcomes, and receive AI-generated recommendations',
-  keywords: 'Formula 1, F1, racing, simulation, strategy, AI, pit stops, tires',
+  title: 'F1 Race Simulator - Professional Strategy Analysis',
+  description: 'Professional Formula 1 race strategy simulation and analysis platform',
+  keywords: 'Formula 1, F1, racing, simulation, strategy, pit stops, tires, analysis',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <Toaster position="top-center" />
-        {children}
+      <body className={inter.className}>
+        <Providers>
+          <Toaster position="top-center" />
+          {children}
+        </Providers>
       </body>
     </html>
   )

@@ -69,11 +69,8 @@ const WeatherForecast = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Weather Forecast</h3>
         
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${isUsingAPIData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-          <span className="text-xs text-gray-600 dark:text-gray-300">
-            {isUsingAPIData ? 'Real Weather' : 'Simulated'}
-          </span>
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          {isUsingAPIData ? 'API Data' : 'Simulated'}
         </div>
       </div>
 
@@ -86,7 +83,7 @@ const WeatherForecast = () => {
 
       {!isLoading && weatherForecast.length > 0 && (
         <div className="space-y-4">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 {getWeatherIcon(weatherForecast[0].condition)}

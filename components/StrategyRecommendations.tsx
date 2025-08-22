@@ -50,8 +50,8 @@ const StrategyRecommendations = () => {
   return (
     <div className="card">
       <div className="flex items-center space-x-2 mb-6">
-        <Brain className="w-6 h-6 text-f1-blue" />
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">AI Strategy Recommendations</h2>
+        <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Strategy Recommendations</h2>
       </div>
 
       {isLoading ? (
@@ -95,29 +95,27 @@ const StrategyRecommendations = () => {
           <div className="text-center mt-4">
             <button
               onClick={handleGetRecommendation}
-              className="bg-f1-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
-              Refresh AI Recommendation
+              Refresh Recommendation
             </button>
           </div>
         </div>
       ) : (
         <div className="text-center py-8">
-          <Brain className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Configure your strategy to get AI recommendations</p>
+          <Brain className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Configure your strategy to get recommendations</p>
           <button
             onClick={handleGetRecommendation}
             disabled={strategy.pit_stops.length === 0 || strategy.tires.length === 0}
-            className="bg-f1-blue hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-2 px-4 rounded transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium py-2 px-4 rounded-md transition-colors"
           >
-            Get AI Strategy Recommendation
+            Get Strategy Recommendation
           </button>
         </div>
       )}
       
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-        * Please minimize API requests as there is a rate limit for demo purposes.
-      </p>
+
     </div>
   )
 }

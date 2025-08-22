@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { BarChart3, Trophy, AlertTriangle, TrendingUp, Clock, Target, Plus } from 'lucide-react'
+import { BarChart3, Plus } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
-import toast from 'react-hot-toast'
+import { showSuccessToast } from '../lib/toast'
 
 const StrategyComparison = () => {
   const { 
@@ -30,6 +30,14 @@ const StrategyComparison = () => {
     if (riskScore < 0.3) return 'Low'
     if (riskScore < 0.6) return 'Medium'
     return 'High'
+  }
+
+  const handleDeleteStrategy = (id: string) => {
+    const strategy = strategies.find(s => s.id === id)
+    if (strategy) {
+      deleteStrategy(id)
+      showSuccessToast(`${strategy.name} deleted successfully`)
+    }
   }
 
   if (!comparisonResults) {
@@ -81,7 +89,7 @@ const StrategyComparison = () => {
             {strategies.map((strategy) => (
               <div
                 key={strategy.id}
-                className={`p-4 border rounded-lg flex flex-col gap-2 cursor-pointer hover:shadow-lg transition ${
+                className={`p-4 border rounded-lg flex flex-col gap-2 cursor-pointer transition ${
                   strategy.id === activeStrategyId 
                     ? 'border-blue-300 bg-blue-50 dark:bg-[#232b39]' 
                     : 'border-gray-200 dark:border-gray-700 dark:bg-gray-800'
@@ -99,8 +107,7 @@ const StrategyComparison = () => {
                     <button
                       onClick={e => {
                         e.stopPropagation()
-                        deleteStrategy(strategy.id)
-                        toast.success(`${strategy.name} deleted successfully`)
+                        handleDeleteStrategy(strategy.id)
                       }}
                       className="text-red-600 hover:underline text-xs dark:text-red-400 dark:hover:text-red-300"
                     >
@@ -140,9 +147,7 @@ const StrategyComparison = () => {
           </span>
         </button>
         
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-          * Please minimize API requests as there is a rate limit for demo purposes.
-        </p>
+
       </div>
     )
   }
@@ -151,9 +156,9 @@ const StrategyComparison = () => {
     <div className="card">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Strategy Comparison Results</h2>
       
-      <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/40 dark:to-yellow-900/40 p-4 rounded-lg mb-6">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-6">
         <div className="flex items-center space-x-3">
-          <Trophy className="w-6 h-6 text-yellow-600 dark:text-yellow-200" />
+                          <span className="text-yellow-600 dark:text-yellow-200 font-semibold">Winner</span>
           <div>
             <h3 className="font-bold text-yellow-900 dark:text-yellow-200">Winner: {comparisonResults.winner.name}</h3>
             <p className="text-yellow-700 dark:text-yellow-100">Total Time: {comparisonResults.winner.total_time.toFixed(1)}s</p>
@@ -212,7 +217,7 @@ const StrategyComparison = () => {
       {comparisonResults.key_differences.length > 0 && (
         <div className="mt-6">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
-            <AlertTriangle className="w-5 h-5 text-orange-500" />
+                            <span className="text-orange-500 font-semibold">Note</span>
             <span>Key Differences</span>
           </h3>
           <div className="space-y-2">
@@ -236,7 +241,7 @@ const StrategyComparison = () => {
       {comparisonResults.optimization_suggestions.length > 0 && (
         <div className="mt-6">
           <h3 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
+                            <span className="text-green-500 font-semibold">Optimize</span>
             <span>Optimization Suggestions</span>
           </h3>
           <div className="space-y-2">
@@ -251,7 +256,7 @@ const StrategyComparison = () => {
 
       <div className="mt-6">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center space-x-2">
-          <Target className="w-5 h-5 text-purple-500" />
+                          <span className="text-purple-500 font-semibold">Risk</span>
           <span>Risk Analysis</span>
         </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -298,9 +303,7 @@ const StrategyComparison = () => {
         Reset Comparison
       </button>
       
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-        * Please minimize API requests as there is a rate limit for demo purposes.
-      </p>
+
     </div>
   )
 }

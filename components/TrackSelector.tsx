@@ -48,7 +48,7 @@ const TrackSelector = () => {
   const nextRef = useRef<HTMLButtonElement>(null)
 
   return (
-    <div className="bg-white dark:bg-[#181f2a] rounded-2xl shadow-lg p-6 w-full max-w-4xl mx-auto">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Track Selection</h3>
       </div>
@@ -114,8 +114,8 @@ const TrackSelector = () => {
             <SwiperSlide key={track.id}>
               <button
                 className={`
-                  relative bg-white dark:bg-gray-800 rounded-3xl flex flex-col justify-between
-                  border-2 border-gray-200 dark:border-gray-700 w-full h-[260px] text-left transition overflow-hidden
+                  relative bg-white dark:bg-gray-800 rounded-lg flex flex-col justify-between
+                  border border-gray-200 dark:border-gray-700 w-full h-[200px] text-left transition overflow-hidden
                   text-gray-900 dark:text-gray-100
                   ${selectedTrack === track.id 
                     ? 'border-blue-600 dark:border-blue-400' 
@@ -128,30 +128,32 @@ const TrackSelector = () => {
                   src={getFlagUrl(track.country)}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none rounded-3xl"
-                  style={{ filter: 'grayscale(30%)', opacity: 0.15 }}
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none rounded-lg"
+                  style={{ filter: 'grayscale(50%)', opacity: 0.1 }}
                 />
                 
                 <div className="relative z-10 flex flex-col h-full justify-between p-6">
                   <div>
-                    <h2 className="font-bold text-2xl mb-1 text-gray-900 dark:text-white leading-tight drop-shadow-md">{track.name}</h2>
+                    <h2 className="font-semibold text-lg mb-1 text-gray-900 dark:text-white leading-tight">{track.name}</h2>
                     <div className="text-xs text-gray-400 dark:text-gray-300 mb-4">{track.country}</div>
                   </div>
                   
                   <div className="flex flex-col gap-2 w-full">
                     <div className="relative group w-full">
-                      <span className="block w-full bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded cursor-help">
-                        Weather: {Math.round(track.weather_sensitivity * 100)}%
-                      </span>
+                      <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded cursor-help min-h-[28px]">
+                        <span className="text-sm font-medium truncate mr-2">Weather</span>
+                        <span className="text-sm font-semibold flex-shrink-0">{Math.round(track.weather_sensitivity * 100)}%</span>
+                      </div>
                       <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-200 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                         Historical likelihood of variable weather at this circuit. Not a real-time forecast.
                       </div>
                     </div>
                     
                     <div className="relative group w-full">
-                      <span className="block w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded cursor-help">
-                        Overtaking: {track.overtaking_difficulty < 0.3 ? 'Easy' : track.overtaking_difficulty < 0.7 ? 'Medium' : 'Hard'}
-                      </span>
+                      <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded cursor-help min-h-[28px]">
+                        <span className="text-sm font-medium truncate mr-2">Overtaking</span>
+                        <span className="text-sm font-semibold flex-shrink-0">{track.overtaking_difficulty < 0.3 ? 'Easy' : track.overtaking_difficulty < 0.7 ? 'Medium' : 'Hard'}</span>
+                      </div>
                       <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 bg-white dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-200 rounded shadow-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
                         How difficult it is to overtake at this circuit, based on layout and history.
                       </div>

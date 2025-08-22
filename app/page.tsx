@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import RaceStrategyForm from '../components/RaceStrategyForm'
 import SimulationResultsChart from '../components/SimulationResultsChart'
@@ -8,9 +8,16 @@ import StrategyRecommendations from '../components/StrategyRecommendations'
 import TrackSelector from '../components/TrackSelector'
 import WeatherForecast from '../components/WeatherForecast'
 import StrategyComparison from '../components/StrategyComparison'
+import ProtectedRoute from '../components/ProtectedRoute'
+import LoginModal from '../components/LoginModal'
 import { useSimulationStore } from '../store/simulationStore'
+import { useSession } from 'next-auth/react'
+import { Crown } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Home() {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const { data: session, status } = useSession()
   const {
     loadAvailableTracks,
     loadWeatherForecast,
@@ -30,10 +37,39 @@ export default function Home() {
     }
   }, [selectedTrack, loadWeatherForecast])
 
+  // Auto-open login modal if user is not authenticated and not loading
+  useEffect(() => {
+    if (status === 'unauthenticated' && !isLoginModalOpen) {
+      setIsLoginModalOpen(true)
+    }
+  }, [status, isLoginModalOpen])
+
+  const handleOpenLogin = () => setIsLoginModalOpen(true)
+  const handleCloseLogin = () => setIsLoginModalOpen(false)
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+      <Header onOpenLogin={handleOpenLogin} />
       
+      {/* Pricing Banner for Free Users */}
+      {!session?.user && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700/30 py-3 px-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Crown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <h3 className="font-medium text-blue-900 dark:text-blue-100">Unlock Premium Features</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300">Get unlimited simulations, advanced analytics, and more</p>
+              </div>
+            </div>
+            <Link href="/pricing" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+              View Plans
+            </Link>
+          </div>
+        </div>
+      )}
+      
+      {/* API Error Banner */}
       {apiError && (
         <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -61,17 +97,63 @@ export default function Home() {
           </div>
 
           <div className="lg:col-span-2 space-y-6 max-w-xl mx-auto">
-            <RaceStrategyForm />
-            <StrategyRecommendations />
+            {session?.user ? (
+              <>
+                <RaceStrategyForm />
+                <StrategyRecommendations />
+              </>
+            ) : (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+                              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Sign in to Access Features
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Create race strategies and get AI recommendations
+                </p>
+                <button
+                  onClick={handleOpenLogin}
+                  className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  Sign In
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="mt-8">
-          <SimulationResultsChart />
+          {session?.user ? (
+            <SimulationResultsChart />
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Simulation Results
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Sign in to view simulation results and charts
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-8">
-          <StrategyComparison />
+          {session?.user ? (
+            <StrategyComparison />
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Strategy Comparison
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Sign in to compare different race strategies
+              </p>
+            </div>
+          )}
         </div>
       </main>
 
@@ -79,16 +161,22 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 dark:text-gray-300 gap-2">
             <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
-              <span className="font-semibold text-f1-red">F1 Race Sim: Smarter Strategy, Better Racing</span>
-              <span className="italic text-gray-500 dark:text-gray-400">Built for F1 fans & data-driven strategists</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">F1 Race Simulator</span>
+              <span className="text-gray-500 dark:text-gray-400">Professional racing strategy analysis</span>
             </div>
             <div className="flex items-center gap-4">
-              <a href="https://github.com/kirandevihosur74/F1RaceSim" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline">View on GitHub</a>
+              <a href="https://github.com/kirandevihosur74/F1RaceSim" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">GitHub</a>
               <span className="text-gray-400 dark:text-gray-500">&copy; {new Date().getFullYear()} F1 Race Sim</span>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={handleCloseLogin} 
+      />
     </div>
   )
 } 

@@ -37,7 +37,105 @@ Resources:
             Status: Enabled
             ExpirationInDays: 90
 
-  # DynamoDB Table for structured metadata
+  # DynamoDB Table for user subscriptions
+  UserSubscriptionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub f1-user-subscriptions-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: subscription_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: subscription_id
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: SubscriptionIdIndex
+          KeySchema:
+            - AttributeName: subscription_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # DynamoDB Table for user usage tracking
+  UserUsageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub f1-user-usage-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: feature_date_key
+          AttributeType: S
+        - AttributeName: feature_name
+          AttributeType: S
+        - AttributeName: reset_date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: feature_date_key
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: FeatureDateIndex
+          KeySchema:
+            - AttributeName: feature_name
+              KeyType: HASH
+            - AttributeName: reset_date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ResetDateIndex
+          KeySchema:
+            - AttributeName: reset_date
+              KeyType: HASH
+            - AttributeName: user_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # DynamoDB Table for user actions logging
+  UserActionsLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub f1-user-actions-log-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: action_type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ActionTypeIndex
+          KeySchema:
+            - AttributeName: action_type
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: TimestampIndex
+          KeySchema:
+            - AttributeName: timestamp
+              KeyType: HASH
+            - AttributeName: user_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # DynamoDB Table for strategy metadata (existing)
   StrategyMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -83,6 +181,12 @@ Resources:
             BucketName: !Ref SimulationDataBucket
         - DynamoDBCrudPolicy:
             TableName: !Ref StrategyMetadataTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserSubscriptionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserUsageTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UserActionsLogTable
         - Statement:
             - Effect: Allow
               Action:
@@ -113,6 +217,24 @@ Outputs:
     Value: !Ref SimulationDataBucket
     Export:
       Name: !Sub ${AWS::StackName}-SimulationBucket
+
+  UserSubscriptionsTable:
+    Description: DynamoDB table for user subscriptions
+    Value: !Ref UserSubscriptionsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-UserSubscriptionsTable
+
+  UserUsageTable:
+    Description: DynamoDB table for user usage tracking
+    Value: !Ref UserUsageTable
+    Export:
+      Name: !Sub ${AWS::StackName}-UserUsageTable
+
+  UserActionsLogTable:
+    Description: DynamoDB table for user actions logging
+    Value: !Ref UserActionsLogTable
+    Export:
+      Name: !Sub ${AWS::StackName}-UserActionsLogTable
 
   StrategyMetadataTable:
     Description: DynamoDB table for strategy metadata

@@ -5,6 +5,7 @@ export interface StrategyInput {
   pit_stops: number[]
   tires: string[]
   driver_style: 'conservative' | 'balanced' | 'aggressive'
+  weather_conditions?: 'dry' | 'wet' | 'intermediate'
 }
 
 export interface StrategyInputWithMeta extends StrategyInput {
