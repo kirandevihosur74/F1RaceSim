@@ -36,8 +36,8 @@ const RaceStrategyForm = () => {
     name: '',
     weather_conditions: 'dry' as WeatherType,
     driver_style: 'balanced' as DriverStyleType,
-    pit_stops: [] as number[],
-    tires: [] as string[]
+    pit_stops: [0] as number[], // Start with one empty pit stop input
+    tires: ['Medium'] as string[] // Start with one tire compound (Medium)
   })
 
   const [strategyName, setStrategyName] = useState('')
@@ -93,8 +93,8 @@ const RaceStrategyForm = () => {
         ...prev,
         weather_conditions: 'dry',
         driver_style: 'balanced',
-        pit_stops: [],
-        tires: []
+        pit_stops: [0], // Start with one empty pit stop input
+        tires: ['Medium'] // Start with one tire compound (Medium)
       }))
     }
   }, [selectedTrackDetails])
@@ -110,8 +110,8 @@ const RaceStrategyForm = () => {
           name: strategy.name,
           weather_conditions: strategy.weather_conditions || 'dry',
           driver_style: strategy.driver_style || 'balanced',
-          pit_stops: [...(strategy.pit_stops || [])],
-          tires: [...(strategy.tires || [])]
+          pit_stops: strategy.pit_stops && strategy.pit_stops.length > 0 ? [...strategy.pit_stops] : [0],
+          tires: strategy.tires && strategy.tires.length > 0 ? [...strategy.tires] : ['Medium']
         })
         setStrategyName(strategy.name)
         setIsEditing(true)
@@ -124,8 +124,8 @@ const RaceStrategyForm = () => {
         name: '',
         weather_conditions: 'dry',
         driver_style: 'balanced',
-        pit_stops: [],
-        tires: []
+        pit_stops: [0], // Start with one empty pit stop input
+        tires: ['Medium'] // Start with one tire compound (Medium)
       })
       setStrategyName('')
       setIsEditing(false)
@@ -140,8 +140,8 @@ const RaceStrategyForm = () => {
         name: existingStrategy.name,
         weather_conditions: existingStrategy.weather_conditions || 'dry',
         driver_style: existingStrategy.driver_style || 'balanced',
-        pit_stops: [...(existingStrategy.pit_stops || [])],
-        tires: [...(existingStrategy.tires || [])]
+        pit_stops: existingStrategy.pit_stops && existingStrategy.pit_stops.length > 0 ? [...existingStrategy.pit_stops] : [0],
+        tires: existingStrategy.tires && existingStrategy.tires.length > 0 ? [...existingStrategy.tires] : ['Medium']
       })
       setStrategyName(existingStrategy.name)
       setIsEditing(true)
@@ -152,8 +152,8 @@ const RaceStrategyForm = () => {
         name: '',
         weather_conditions: 'dry',
         driver_style: 'balanced',
-        pit_stops: [],
-        tires: []
+        pit_stops: [0], // Start with one empty pit stop input
+        tires: ['Medium'] // Start with one tire compound (Medium)
       })
       setStrategyName('')
       setIsEditing(false)
@@ -211,7 +211,7 @@ const RaceStrategyForm = () => {
     }
 
     // Pit stops validation
-    if (localStrategy.pit_stops.length === 0) {
+    if (localStrategy.pit_stops.length === 0 || (localStrategy.pit_stops.length === 1 && localStrategy.pit_stops[0] === 0)) {
       errors.pitStops = 'At least one pit stop is required'
     } else {
       // Check if any pit stop has invalid values
@@ -222,7 +222,7 @@ const RaceStrategyForm = () => {
     }
 
     // Tires validation
-    if (localStrategy.tires.length === 0) {
+    if (localStrategy.tires.length === 0 || (localStrategy.tires.length === 1 && !localStrategy.tires[0].trim())) {
       errors.tires = 'At least one tire compound is required'
     } else {
       // Check if any tire is empty
@@ -336,8 +336,8 @@ const RaceStrategyForm = () => {
       name: '',
       weather_conditions: 'dry',
       driver_style: 'balanced',
-      pit_stops: [],
-      tires: []
+      pit_stops: [0], // Start with one empty pit stop input
+      tires: ['Medium'] // Start with one tire compound (Medium)
     })
     setExistingStrategy(null)
     setActiveStrategy(null)
@@ -376,8 +376,8 @@ const RaceStrategyForm = () => {
         id: existingStrategy ? existingStrategy.id : Date.now().toString(),
         name: strategyName || `Strategy ${Date.now()}`,
         weather_conditions: localStrategy.weather_conditions,
-        pit_stops: [...localStrategy.pit_stops].sort((a, b) => a - b),
-        tires: [...localStrategy.tires],
+        pit_stops: [...localStrategy.pit_stops].filter(lap => lap > 0).sort((a, b) => a - b),
+        tires: [...localStrategy.tires].filter(tire => tire.trim()),
         driver_style: localStrategy.driver_style
       }
 
