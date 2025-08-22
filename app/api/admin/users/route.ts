@@ -47,6 +47,15 @@ export async function GET(request: NextRequest) {
         // Extract user ID from strategy_id (e.g., "USER_123_PROFILE" -> "123")
         const userId = profile.strategy_id?.replace('USER_', '').replace('_PROFILE', '') || profile.user_id || 'unknown'
         
+        console.log(`Processing profile for user ${userId}:`, {
+          strategy_id: profile.strategy_id,
+          user_id: profile.user_id,
+          lastSignIn: profile.lastSignIn,
+          lastLogout: profile.lastLogout,
+          status: profile.status,
+          type: profile.type
+        })
+        
         // Find related items for this user
         const userStrategies = allItems.filter((item: any) => 
           item.user_id === userId && item.type === 'STRATEGY'
@@ -79,11 +88,13 @@ export async function GET(request: NextRequest) {
         
         // Check if user has logged out recently
         if (profile.lastLogout) {
+          console.log(`User ${userId} has lastLogout:`, profile.lastLogout)
           const logoutTime = new Date(profile.lastLogout).getTime()
           const lastSignInTime = new Date(profile.lastSignIn || profile.last_sign_in || 0).getTime()
           
           // If logout is more recent than last sign in, user is inactive
           if (logoutTime > lastSignInTime) {
+            console.log(`User ${userId} marked inactive due to logout`)
             status = 'inactive'
             lastActive = profile.lastLogout
           }
@@ -94,7 +105,10 @@ export async function GET(request: NextRequest) {
         const currentTime = Date.now()
         const thirtyMinutes = 30 * 60 * 1000 // 30 minutes in milliseconds
         
+        console.log(`User ${userId} - Last activity: ${lastActive}, Current time: ${new Date(currentTime).toISOString()}, Time difference: ${currentTime - lastActivityTime}ms`)
+        
         if (currentTime - lastActivityTime > thirtyMinutes) {
+          console.log(`User ${userId} marked inactive due to session expiry`)
           status = 'inactive'
         }
         
@@ -112,6 +126,8 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        console.log(`Final status for user ${userId}: ${status}`)
+        
         return {
           id: userId,
           email: profile.email || 'unknown@example.com',

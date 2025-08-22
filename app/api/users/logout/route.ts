@@ -40,9 +40,12 @@ const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Logout API called with request:', request.url)
     const { userId, logoutTime } = await request.json()
+    console.log('Logout data received:', { userId, logoutTime })
     
     if (!userId) {
+      console.log('No userId provided in logout request')
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
