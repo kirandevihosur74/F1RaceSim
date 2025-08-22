@@ -4,6 +4,9 @@ import { authOptions } from '../../../../lib/auth'
 import { isAdmin } from '../../../../lib/admin'
 import { checkTableHealth, TABLES } from '../../../../lib/dynamodb'
 
+// Force dynamic rendering to prevent static optimization errors
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
