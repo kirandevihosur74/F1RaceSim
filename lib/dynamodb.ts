@@ -9,27 +9,44 @@ import {
   DeleteCommand
 } from '@aws-sdk/lib-dynamodb'
 
-// Initialize DynamoDB client
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-west-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-})
+// Initialize DynamoDB client with improved error handling
+const createDynamoDBClient = () => {
+  const region = process.env.AWS_REGION || 'us-west-1'
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+
+  // Log configuration for debugging (without exposing secrets)
+  console.log('AWS DynamoDB Configuration:')
+  console.log('- Region:', region)
+  console.log('- Access Key ID:', accessKeyId ? `${accessKeyId.substring(0, 4)}...` : 'MISSING')
+  console.log('- Secret Access Key:', secretAccessKey ? 'PRESENT' : 'MISSING')
+
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('AWS credentials are missing! Please check your environment variables.')
+    throw new Error('AWS credentials not configured')
+  }
+
+  return new DynamoDBClient({
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  })
+}
+
+const client = createDynamoDBClient()
 
 // Create DynamoDB Document client for easier operations
 export const dynamoDb = DynamoDBDocumentClient.from(client)
 
-// Table names based on environment
-const ENV = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
-
+// Table names - use actual table names from your infrastructure
 export const TABLES = {
-  USER_SUBSCRIPTIONS: `f1-user-subscriptions-${ENV}`,
-  USER_USAGE: `f1-user-usage-${ENV}`,
-  USER_ACTIONS_LOG: `f1-user-actions-log-${ENV}`,
-  STRATEGY_METADATA: `f1-strategy-metadata-${ENV}`,
-  SIMULATION_RESULTS: 'f1-simulation-results'
+  USER_SUBSCRIPTIONS: process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev',
+  USER_USAGE: process.env.USER_USAGE_TABLE || 'f1-user-usage-dev',
+  USER_ACTIONS_LOG: process.env.USER_ACTIONS_LOG_TABLE || 'f1-user-actions-log-dev',
+  STRATEGY_METADATA: process.env.METADATA_TABLE || 'f1-strategy-metadata-dev',
+  SIMULATION_RESULTS: process.env.SIMULATION_RESULTS_TABLE || 'f1-simulation-results'
 }
 
 // Helper functions for common operations

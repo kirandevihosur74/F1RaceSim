@@ -1,22 +1,66 @@
 'use client'
 
-import React from 'react'
-import { Check, X } from 'lucide-react'
+import React, { useState } from 'react'
+import { Check, X, CreditCard } from 'lucide-react'
 import { pricingPlans, PricingPlan, PricingFeature } from '../lib/pricing'
 import { useSession } from 'next-auth/react'
+import { useStripe } from '../lib/hooks/useStripe'
+import { showSuccessToast, showErrorToast } from '../lib/toast'
 import BackButton from './BackButton'
 
 const PricingPage = () => {
   const { data: session } = useSession()
+  const { createCheckoutSession, loading } = useStripe()
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null)
 
-  const handleUpgrade = (planId: string) => {
+  const handleUpgrade = async (planId: string) => {
     if (!session?.user) {
-      // Redirect to login if not authenticated
+      showErrorToast('Please sign in to upgrade your plan')
       return
     }
+
+    if (planId === 'free') {
+      showErrorToast('You are already on the free plan')
+      return
+    }
+
+    try {
+      setUpgradingPlan(planId)
+      await createCheckoutSession(planId, billingCycle)
+    } catch (error) {
+      console.error('Error upgrading plan:', error)
+      showErrorToast('Failed to start checkout. Please try again.')
+    } finally {
+      setUpgradingPlan(null)
+    }
+  }
+
+  const getPlanPrice = (plan: PricingPlan) => {
+    if (plan.price === 0) return 'Free'
     
-    // TODO: Implement Stripe checkout
-    console.log(`Upgrading to ${planId} plan`)
+    if (billingCycle === 'yearly') {
+      const yearlyPrice = Math.round(plan.price * 12 * 0.8) // 20% discount for yearly
+      return `$${yearlyPrice}/year`
+    }
+    
+    return `$${plan.price}/month`
+  }
+
+  const getSavingsBadge = (plan: PricingPlan) => {
+    if (plan.price === 0 || billingCycle === 'monthly') return null
+    
+    const monthlyTotal = plan.price * 12
+    const yearlyPrice = Math.round(plan.price * 12 * 0.8)
+    const savings = monthlyTotal - yearlyPrice
+    
+    return (
+      <div className="absolute -top-3 right-4">
+        <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+          Save ${savings}/year
+        </div>
+      </div>
+    )
   }
 
   const renderFeature = (feature: PricingFeature) => (
@@ -34,7 +78,8 @@ const PricingPage = () => {
 
   const renderPlan = (plan: PricingPlan) => {
     const isCurrentPlan = false // TODO: Get from user subscription
-
+    const isUpgrading = upgradingPlan === plan.id
+    
     return (
       <div
         key={plan.id}
@@ -52,6 +97,8 @@ const PricingPage = () => {
           </div>
         )}
 
+        {getSavingsBadge(plan)}
+
         <div className="text-center mb-6">
           <div className="text-center mb-2">
             <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -63,13 +110,8 @@ const PricingPage = () => {
           </p>
           <div className="mb-2">
             <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {plan.price === 0 ? 'Free' : `$${plan.price}`}
+              {getPlanPrice(plan)}
             </span>
-            {plan.price > 0 && (
-              <span className="text-gray-500 dark:text-gray-400 text-sm">
-                /month
-              </span>
-            )}
           </div>
         </div>
 
@@ -79,8 +121,8 @@ const PricingPage = () => {
 
         <button
           onClick={() => handleUpgrade(plan.id)}
-          disabled={isCurrentPlan}
-          className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+          disabled={isCurrentPlan || isUpgrading || loading}
+          className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
             isCurrentPlan
               ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 cursor-not-allowed'
               : plan.popular
@@ -88,7 +130,19 @@ const PricingPage = () => {
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100'
           }`}
         >
-          {isCurrentPlan ? 'Current Plan' : plan.cta}
+          {isUpgrading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Processing...</span>
+            </>
+          ) : isCurrentPlan ? (
+            'Current Plan'
+          ) : (
+            <>
+              <CreditCard className="w-4 h-4" />
+              <span>{plan.cta}</span>
+            </>
+          )}
         </button>
       </div>
     )
@@ -99,22 +153,57 @@ const PricingPage = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-8">
-          <BackButton href="/" label="Back to Dashboard" variant="outlined" />
+          <BackButton />
         </div>
-        
+
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Start free and upgrade as you need more features.
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Unlock unlimited simulations, advanced analytics, and AI-powered strategy recommendations
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Billing Cycle Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingCycle === 'monthly'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                billingCycle === 'yearly'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
+            >
+              Yearly
+              <span className="ml-1 text-xs text-green-600">(20% off)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Plans Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {pricingPlans.map(renderPlan)}
+        </div>
+
+        {/* Additional Info */}
+        <div className="mt-12 text-center">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            All plans include secure payment processing via Stripe. 
+            Cancel or change your plan at any time.
+          </p>
         </div>
       </div>
     </div>

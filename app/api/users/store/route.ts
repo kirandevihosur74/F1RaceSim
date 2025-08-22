@@ -5,16 +5,35 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand } from '@a
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
 
-// Initialize DynamoDB client
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-})
+// Initialize DynamoDB client with better error handling
+const createDynamoDBClient = () => {
+  const region = process.env.AWS_REGION || 'us-east-1'
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 
-const docClient = DynamoDBDocumentClient.from(client)
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('AWS credentials missing in user store API')
+    throw new Error('AWS credentials not configured for user storage')
+  }
+
+  return new DynamoDBClient({
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  })
+}
+
+let docClient: DynamoDBDocumentClient | null = null
+
+const getDocClient = () => {
+  if (!docClient) {
+    const client = createDynamoDBClient()
+    docClient = DynamoDBDocumentClient.from(client)
+  }
+  return docClient
+}
 
 // Use the existing table from your infrastructure
 const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
@@ -44,7 +63,7 @@ export async function POST(request: NextRequest) {
         },
       })
       
-      const existingUser = await docClient.send(queryCommand)
+      const existingUser = await getDocClient().send(queryCommand)
       
       if (existingUser.Items && existingUser.Items.length > 0) {
         // Update existing user profile
@@ -69,7 +88,7 @@ export async function POST(request: NextRequest) {
             Item: updateData,
           })
           
-          await docClient.send(putCommand)
+          await getDocClient().send(putCommand)
           
           return NextResponse.json({
             message: 'User updated successfully',
@@ -108,7 +127,7 @@ export async function POST(request: NextRequest) {
       Item: newUserProfile,
     })
 
-    await docClient.send(putCommand)
+    await getDocClient().send(putCommand)
 
     return NextResponse.json({
       message: 'User created successfully',
@@ -148,7 +167,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const result = await docClient.send(queryCommand)
+    const result = await getDocClient().send(queryCommand)
 
     if (!result.Items || result.Items.length === 0) {
       return NextResponse.json(

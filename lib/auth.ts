@@ -16,6 +16,36 @@ const getNextAuthUrl = () => {
   return 'http://localhost:3000'
 }
 
+// Function to store user in DynamoDB
+const storeUserInDatabase = async (user: any) => {
+  try {
+    const userData = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      provider: 'google', // Since we're only using Google for now
+      providerId: user.id,
+    }
+
+    const response = await fetch(`${getNextAuthUrl()}/api/users/store`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    })
+
+    if (!response.ok) {
+      console.error('Failed to store user in database:', await response.text())
+    } else {
+      console.log('User stored successfully in database')
+    }
+  } catch (error) {
+    console.error('Error storing user in database:', error)
+  }
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -24,6 +54,14 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }: any) {
+      // Store user in database on successful sign-in
+      if (user && user.email) {
+        await storeUserInDatabase(user)
+      }
+      return true
+    },
+
     async session({ session, token }: any) {
       // Add user ID to session for easy access
       if (token.sub) {
