@@ -73,8 +73,21 @@ export async function GET(request: NextRequest) {
           plan = 'free'
         }
 
-        // Get last active time
+        // Determine user status based on activity
+        let status = profile.status || 'active'
         let lastActive = profile.lastSignIn || profile.last_sign_in || profile.updated_at || profile.created_at || new Date().toISOString()
+        
+        // Check if user has logged out recently
+        if (profile.lastLogout) {
+          const logoutTime = new Date(profile.lastLogout).getTime()
+          const lastSignInTime = new Date(profile.lastSignIn || profile.last_sign_in || 0).getTime()
+          
+          // If logout is more recent than last sign in, user is inactive
+          if (logoutTime > lastSignInTime) {
+            status = 'inactive'
+            lastActive = profile.lastLogout
+          }
+        }
         
         // If no last active, use the most recent strategy or simulation
         if (!lastActive || lastActive === profile.created_at) {
@@ -95,7 +108,7 @@ export async function GET(request: NextRequest) {
           email: profile.email || 'unknown@example.com',
           name: profile.name || profile.user_name || 'Unknown User',
           plan: plan,
-          status: profile.status || 'active',
+          status: status, // Use calculated status
           lastActive: new Date(lastActive).toISOString().slice(0, 19).replace('T', ' '),
           totalSimulations: totalSimulations,
           totalStrategies: totalStrategies,

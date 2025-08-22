@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
       providerId: userData.providerId,
       createdAt: new Date().toISOString(),
       lastSignIn: new Date().toISOString(),
+      status: 'active', // Set initial status
       preferences: {
         theme: 'light',
         defaultTrack: null,
