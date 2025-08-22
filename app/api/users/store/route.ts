@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
             providerId: userData.providerId,
             lastSignIn: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            status: 'active', // Set status to active on sign-in
+            lastLogout: undefined, // Clear logout timestamp on sign-in
           }
           
           const putCommand = new PutCommand({
