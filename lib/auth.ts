@@ -17,16 +17,25 @@ const getNextAuthUrl = () => {
 }
 
 // Function to store user in DynamoDB
-const storeUserInDatabase = async (user: any) => {
+const storeUserInDatabase = async (user: any, account: any, profile: any) => {
   try {
+    // Use Google profile ID as the primary user ID
+    const userId = profile?.sub || account?.providerAccountId || user.id || user.email
+    
     const userData = {
-      id: user.id,
+      id: userId,
       email: user.email,
       name: user.name,
       image: user.image,
-      provider: 'google', // Since we're only using Google for now
-      providerId: user.id,
+      provider: 'google',
+      providerId: account?.providerAccountId || user.id,
     }
+
+    console.log('Storing user data:', {
+      userId: userData.id,
+      email: userData.email,
+      providerId: userData.providerId
+    })
 
     const response = await fetch(`${getNextAuthUrl()}/api/users/store`, {
       method: 'POST',
@@ -57,7 +66,7 @@ export const authOptions = {
     async signIn({ user, account, profile }: any) {
       // Store user in database on successful sign-in
       if (user && user.email) {
-        await storeUserInDatabase(user)
+        await storeUserInDatabase(user, account, profile)
       }
       return true
     },
