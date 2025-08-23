@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../lib/auth'
-import { usageTracker } from '../../../lib/usageTracking'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
@@ -18,27 +17,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Check usage before allowing simulation
-    const usageCheck = await usageTracker.checkUsage(userId, 'simulations', 'free')
-    
-    console.log('Usage check for user:', userId, {
-      allowed: usageCheck.allowed,
-      current: usageCheck.current,
-      limit: usageCheck.limit,
-      remaining: usageCheck.remaining
+    const usageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feature: 'simulations', planId: 'free' })
     })
     
-    if (!usageCheck.allowed) {
-      return NextResponse.json({ 
-        error: 'Simulation limit reached',
-        details: {
-          message: 'You have reached your daily simulation limit. Upgrade to Pro for unlimited simulations!',
-          current: usageCheck.current,
-          limit: usageCheck.limit,
-          remaining: usageCheck.remaining,
-          resetDate: usageCheck.resetDate
-        }
-      }, { status: 429 })
+    if (!usageResponse.ok) {
+      const errorData = await usageResponse.json()
+      if (usageResponse.status === 429) {
+        return NextResponse.json({ 
+          error: 'Simulation limit reached',
+          details: errorData.details
+        }, { status: 429 })
+      }
+      throw new Error(errorData.error || 'Failed to check usage')
     }
+    
+    const usageCheck = await usageResponse.json()
+    
+    console.log('Usage check for user:', userId, {
+      allowed: usageCheck.usage.allowed,
+      current: usageCheck.usage.current,
+      limit: usageCheck.usage.limit,
+      remaining: usageCheck.usage.remaining
+    })
 
     // Forward the request to your backend simulation endpoint
     const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') + '/simulate-race'
@@ -56,16 +59,20 @@ export async function POST(request: NextRequest) {
     const data = await simResponse.json()
     
     // Increment usage after successful simulation
-    await usageTracker.incrementUsage(userId, 'simulations')
+    const incrementResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feature: 'simulations', planId: 'free' })
+    })
     
     console.log('Simulation completed, usage incremented for user:', userId)
     
     return NextResponse.json({
       ...data,
       usage: {
-        current: usageCheck.current + 1,
-        limit: usageCheck.limit,
-        remaining: usageCheck.remaining - 1
+        current: usageCheck.usage.current + 1,
+        limit: usageCheck.usage.limit,
+        remaining: usageCheck.usage.remaining - 1
       }
     })
   } catch (error) {
