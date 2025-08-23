@@ -128,17 +128,37 @@ export async function GET(request: NextRequest) {
 
         console.log(`Final status for user ${userId}: ${status}`)
         
+        // Convert UTC to PST for display
+        const convertToPST = (utcString: string) => {
+          try {
+            const date = new Date(utcString)
+            return date.toLocaleString('en-US', {
+              timeZone: 'America/Los_Angeles',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+            }).replace(',', '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+          } catch (error) {
+            console.error('Error converting time to PST:', error)
+            return utcString
+          }
+        }
+
         return {
           id: userId,
           email: profile.email || 'unknown@example.com',
           name: profile.name || profile.user_name || 'Unknown User',
           plan: plan,
           status: status, // Use calculated status
-          lastActive: new Date(lastActive).toISOString().slice(0, 19).replace('T', ' '),
+          lastActive: convertToPST(lastActive),
           totalSimulations: totalSimulations,
           totalStrategies: totalStrategies,
           totalAIRecommendations: totalAIRecommendations,
-          createdAt: profile.created_at || profile.createdAt || new Date().toISOString().slice(0, 10)
+          createdAt: convertToPST(profile.created_at || profile.createdAt || new Date().toISOString()).split(' ')[0]
         }
       })
 
