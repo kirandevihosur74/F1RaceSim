@@ -20,6 +20,13 @@ export async function POST(request: NextRequest) {
     // Check usage before allowing simulation
     const usageCheck = await usageTracker.checkUsage(userId, 'simulations', 'free')
     
+    console.log('Usage check for user:', userId, {
+      allowed: usageCheck.allowed,
+      current: usageCheck.current,
+      limit: usageCheck.limit,
+      remaining: usageCheck.remaining
+    })
+    
     if (!usageCheck.allowed) {
       return NextResponse.json({ 
         error: 'Simulation limit reached',
@@ -50,6 +57,8 @@ export async function POST(request: NextRequest) {
     
     // Increment usage after successful simulation
     await usageTracker.incrementUsage(userId, 'simulations')
+    
+    console.log('Simulation completed, usage incremented for user:', userId)
     
     return NextResponse.json({
       ...data,

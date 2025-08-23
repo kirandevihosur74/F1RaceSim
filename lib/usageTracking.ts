@@ -53,6 +53,14 @@ export class UsageTracker {
     const current = await this.getCurrentUsage(userId, feature)
     const resetDate = this.getResetDate(feature)
     
+    console.log(`Usage check for ${feature}:`, {
+      userId,
+      planId,
+      limit,
+      current,
+      allowed: current < limit
+    })
+    
     return {
       allowed: current < limit,
       current,
@@ -93,7 +101,8 @@ export class UsageTracker {
       }
     }
 
-    // TODO: Get from database, for now return 0
+    // For new users or first-time usage, return 0
+    // This ensures free users can run their first simulation
     return 0
   }
 
