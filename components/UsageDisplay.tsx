@@ -1,6 +1,6 @@
 import React from 'react'
 import { useUsage } from '../lib/hooks/useUsage'
-import { AlertCircle, Upgrade } from 'lucide-react'
+import { AlertCircle, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
 const UsageDisplay = () => {
@@ -173,7 +173,7 @@ const UsageDisplay = () => {
             href="/pricing" 
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
-            <Upgrade className="w-4 h-4" />
+            <ArrowUpRight className="w-4 h-4" />
             <span>View Plans</span>
           </Link>
         </div>
