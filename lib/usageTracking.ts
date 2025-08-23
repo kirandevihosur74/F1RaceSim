@@ -97,7 +97,22 @@ export class UsageTracker {
     if (this.usageCache.has(userId)) {
       const userCache = this.usageCache.get(userId)!
       if (userCache.has(feature)) {
-        return userCache.get(feature)!
+        const cachedValue = userCache.get(feature)!
+        
+        // Check if we need to reset (daily for simulations)
+        if (feature === 'simulations') {
+          const lastReset = this.getResetDate(feature)
+          const now = new Date()
+          
+          // If it's a new day, reset the usage
+          if (now.getDate() !== lastReset.getDate() || now.getMonth() !== lastReset.getMonth()) {
+            console.log(`Resetting daily usage for ${feature} - new day detected`)
+            userCache.delete(feature)
+            return 0
+          }
+        }
+        
+        return cachedValue
       }
     }
 
