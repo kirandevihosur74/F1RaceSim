@@ -51,6 +51,10 @@ const RaceStrategyForm = () => {
   
   // Usage tracking
   const { usage, checkUsage, incrementUsage } = useUsage()
+  
+  // Get simulation usage
+  const simulationUsage = usage.find(u => u.feature === 'simulations')
+  const canRunSimulation = simulationUsage ? simulationUsage.current < simulationUsage.limit : true
 
   // Get selected track details
   const selectedTrackDetails = availableTracks.find(track => track.id === selectedTrack)
@@ -444,6 +448,40 @@ const RaceStrategyForm = () => {
         </div>
       )}
 
+      {/* Usage Display and Upgrade Prompt */}
+      {simulationUsage && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Simulations: {simulationUsage.current}/{simulationUsage.limit}
+                </span>
+                {simulationUsage.limit !== -1 && (
+                  <span className="text-xs text-blue-600 dark:text-blue-300">
+                    (resets daily)
+                  </span>
+                )}
+              </div>
+            </div>
+            {!canRunSimulation && (
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-4 h-4 text-orange-500" />
+                <span className="text-sm text-orange-700 dark:text-orange-300">
+                  Daily limit reached
+                </span>
+                <Link 
+                  href="/pricing" 
+                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Upgrade to Pro
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Strategy Selector */}
       <div className="mb-6">
         <Dropdown
@@ -614,13 +652,13 @@ const RaceStrategyForm = () => {
 
         <button
           type="submit"
-          disabled={isLoading || currentPlan === 'free'}
+          disabled={isLoading || !canRunSimulation}
           className="btn-primary w-full flex items-center justify-center space-x-2 disabled:opacity-50"
         >
           <Play className="w-5 h-5" />
           <span>
             {isLoading ? 'Simulating...' : 
-             currentPlan === 'free' ? 'Upgrade to Pro for Simulations' : 
+             !canRunSimulation ? 'Daily Limit Reached' : 
              'Run Simulation'}
           </span>
         </button>

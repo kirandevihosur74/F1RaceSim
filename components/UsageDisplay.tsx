@@ -1,25 +1,17 @@
 import React from 'react'
 import { useUsage } from '../lib/hooks/useUsage'
-import { useSession } from 'next-auth/react'
-import { BarChart3, Zap, Brain, Target } from 'lucide-react'
+import { AlertCircle, Upgrade } from 'lucide-react'
+import Link from 'next/link'
 
 const UsageDisplay = () => {
-  const { data: session } = useSession()
   const { usage, loading, error } = useUsage()
-
-  if (!session?.user) {
-    return null
-  }
 
   if (loading) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
-          <div className="space-y-2">
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-          </div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-2"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
         </div>
       </div>
     )
@@ -27,98 +19,164 @@ const UsageDisplay = () => {
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <p className="text-red-600 dark:text-red-400 text-sm">Error loading usage: {error}</p>
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="flex items-center space-x-2 text-red-700 dark:text-red-300">
+          <AlertCircle className="w-4 h-4" />
+          <span className="text-sm">Error loading usage: {error}</span>
+        </div>
       </div>
     )
   }
 
-  const getFeatureIcon = (feature: string) => {
-    switch (feature) {
-      case 'simulations':
-        return <Zap className="w-4 h-4 text-blue-500" />
-      case 'ai_recommendations':
-        return <Brain className="w-4 h-4 text-purple-500" />
-      case 'strategies':
-        return <Target className="w-4 h-4 text-green-500" />
-      default:
-        return <BarChart3 className="w-4 h-4 text-gray-500" />
-    }
+  if (!usage || usage.length === 0) {
+    return null
   }
 
-  const getFeatureLabel = (feature: string) => {
-    switch (feature) {
-      case 'simulations':
-        return 'Simulations'
-      case 'ai_recommendations':
-        return 'AI Recommendations'
-      case 'strategies':
-        return 'Strategies'
-      default:
-        return feature
-    }
-  }
-
-  const getUsagePercentage = (current: number, limit: number) => {
-    if (limit === -1) return 0
-    return Math.min((current / limit) * 100, 100)
-  }
-
-  const getUsageColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-red-500'
-    if (percentage >= 75) return 'bg-yellow-500'
-    return 'bg-green-500'
-  }
+  const simulationUsage = usage.find(u => u.feature === 'simulations')
+  const aiUsage = usage.find(u => u.feature === 'ai_recommendations')
+  const strategyUsage = usage.find(u => u.feature === 'strategies')
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-        <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-        <span>Usage Summary</span>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        Your Usage
       </h3>
       
-      <div className="space-y-4">
-        {usage.map((item) => (
-          <div key={item.feature} className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-2">
-                {getFeatureIcon(item.feature)}
-                <span className="text-gray-700 dark:text-gray-300">
-                  {getFeatureLabel(item.feature)}
-                </span>
-              </div>
-              <span className="text-gray-600 dark:text-gray-400">
-                {item.isUnlimited ? 'Unlimited' : `${item.current}/${item.limit}`}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Simulations */}
+        {simulationUsage && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Simulations
               </span>
+              {simulationUsage.limit !== -1 && (
+                <span className="text-xs text-blue-600 dark:text-blue-300">
+                  Daily
+                </span>
+              )}
             </div>
-            
-            {!item.isUnlimited && (
-              <>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${getUsageColor(getUsagePercentage(item.current, item.limit))}`}
-                    style={{ width: `${getUsagePercentage(item.current, item.limit)}%` }}
-                  ></div>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              {simulationUsage.current}
+              {simulationUsage.limit !== -1 && (
+                <span className="text-lg text-blue-600 dark:text-blue-300">
+                  /{simulationUsage.limit}
+                </span>
+              )}
+            </div>
+            {simulationUsage.current >= simulationUsage.limit && simulationUsage.limit !== -1 && (
+              <div className="mt-2 p-2 bg-orange-100 dark:bg-orange-900/30 rounded text-xs text-orange-700 dark:text-orange-300">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Limit reached</span>
                 </div>
-                
-                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>
-                    {item.limit - item.current > 0 ? `${item.limit - item.current} remaining` : 'Limit reached'}
-                  </span>
-                  <span>
-                    Resets {item.resetDate.toLocaleDateString()}
-                  </span>
-                </div>
-              </>
+                <Link 
+                  href="/pricing" 
+                  className="inline-block mt-1 text-orange-800 dark:text-orange-200 underline hover:no-underline"
+                >
+                  Upgrade to Pro
+                </Link>
+              </div>
             )}
           </div>
-        ))}
+        )}
+
+        {/* AI Recommendations */}
+        {aiUsage && (
+          <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-purple-900 dark:text-purple-100">
+                AI Recommendations
+              </span>
+              {aiUsage.limit !== -1 && (
+                <span className="text-xs text-purple-600 dark:text-purple-300">
+                  Monthly
+                </span>
+              )}
+            </div>
+            <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+              {aiUsage.current}
+              {aiUsage.limit !== -1 && (
+                <span className="text-lg text-purple-600 dark:text-purple-300">
+                  /{aiUsage.limit}
+                </span>
+              )}
+            </div>
+            {aiUsage.current >= aiUsage.limit && aiUsage.limit !== -1 && (
+              <div className="mt-2 p-2 bg-orange-100 dark:bg-orange-900/30 rounded text-xs text-orange-700 dark:text-orange-300">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Limit reached</span>
+                </div>
+                <Link 
+                  href="/pricing" 
+                  className="inline-block mt-1 text-orange-800 dark:text-orange-200 underline hover:no-underline"
+                >
+                  Upgrade to Pro
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Strategies */}
+        {strategyUsage && (
+          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-green-900 dark:text-green-100">
+                Strategies
+              </span>
+              {strategyUsage.limit !== -1 && (
+                <span className="text-xs text-green-600 dark:text-green-300">
+                  Total
+                </span>
+              )}
+            </div>
+            <div className="text-2xl font-bold text-green-900 dark:text-green-100">
+              {strategyUsage.current}
+              {strategyUsage.limit !== -1 && (
+                <span className="text-lg text-green-600 dark:text-green-300">
+                  /{strategyUsage.limit}
+                </span>
+              )}
+            </div>
+            {strategyUsage.current >= strategyUsage.limit && strategyUsage.limit !== -1 && (
+              <div className="mt-2 p-2 bg-orange-100 dark:bg-orange-900/30 rounded text-xs text-orange-700 dark:text-orange-300">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Limit reached</span>
+                </div>
+                <Link 
+                  href="/pricing" 
+                  className="inline-block mt-1 text-orange-800 dark:text-orange-200 underline hover:no-underline"
+                >
+                  Upgrade to Pro
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          Upgrade to Pro for unlimited access to all features
-        </p>
+
+      {/* Upgrade CTA */}
+      <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Need more features?
+            </h4>
+            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+              Upgrade to Pro for unlimited simulations and advanced features
+            </p>
+          </div>
+          <Link 
+            href="/pricing" 
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Upgrade className="w-4 h-4" />
+            <span>View Plans</span>
+          </Link>
+        </div>
       </div>
     </div>
   )
