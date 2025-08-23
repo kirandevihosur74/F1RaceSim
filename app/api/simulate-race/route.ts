@@ -16,31 +16,38 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
     const body = await request.json()
     
-    // Check usage before allowing simulation
-    const usageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feature: 'simulations', planId: 'free' })
-    })
+    // Check usage before allowing simulation (GET request, not POST)
+    const usageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage?planId=free`)
     
     if (!usageResponse.ok) {
-      const errorData = await usageResponse.json()
-      if (usageResponse.status === 429) {
-        return NextResponse.json({ 
-          error: 'Simulation limit reached',
-          details: errorData.details
-        }, { status: 429 })
-      }
-      throw new Error(errorData.error || 'Failed to check usage')
+      throw new Error('Failed to check usage')
     }
     
-    const usageCheck = await usageResponse.json()
+    const usageData = await usageResponse.json()
+    const simulationUsage = usageData.usage.find((u: any) => u.feature === 'simulations')
+    
+    if (!simulationUsage) {
+      throw new Error('Simulation usage not found')
+    }
+    
+    // Check if user can run simulation
+    if (simulationUsage.limit !== -1 && simulationUsage.current >= simulationUsage.limit) {
+      return NextResponse.json({ 
+        error: 'Simulation limit reached',
+        details: {
+          message: 'You have reached your daily simulation limit. Upgrade to Pro for unlimited simulations!',
+          current: simulationUsage.current,
+          limit: simulationUsage.limit,
+          remaining: 0,
+          resetDate: simulationUsage.resetDate
+        }
+      }, { status: 429 })
+    }
     
     console.log('Usage check for user:', userId, {
-      allowed: usageCheck.usage.allowed,
-      current: usageCheck.usage.current,
-      limit: usageCheck.usage.limit,
-      remaining: usageCheck.usage.remaining
+      current: simulationUsage.current,
+      limit: simulationUsage.limit,
+      remaining: simulationUsage.remaining
     })
 
     // Forward the request to your backend simulation endpoint
@@ -70,9 +77,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ...data,
       usage: {
-        current: usageCheck.usage.current + 1,
-        limit: usageCheck.usage.limit,
-        remaining: usageCheck.usage.remaining - 1
+        current: simulationUsage.current + 1,
+        limit: simulationUsage.limit,
+        remaining: simulationUsage.remaining - 1
       }
     })
   } catch (error) {
