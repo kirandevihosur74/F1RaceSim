@@ -14,6 +14,13 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id
+    
+    // Validate userId
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      console.error('Invalid userId in session:', userId)
+      return NextResponse.json({ error: 'Invalid user session' }, { status: 400 })
+    }
+    
     const body = await request.json()
     
     // Check usage before allowing simulation (GET request, not POST)
@@ -52,14 +59,30 @@ export async function POST(request: NextRequest) {
 
     // Forward the request to your backend simulation endpoint
     const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') + '/simulate-race'
+    
+    console.log('Backend URL:', backendUrl)
+    console.log('Request body:', body)
+    
+    // Check if backend URL is valid
+    if (!backendUrl || backendUrl.includes('your-backend-url.com') || backendUrl.includes('your-api-gateway-url')) {
+      return NextResponse.json({ 
+        error: 'Backend not configured',
+        details: 'NEXT_PUBLIC_API_URL is not set correctly. Please configure your backend URL.'
+      }, { status: 500 })
+    }
+    
     const simResponse = await fetch(backendUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
     
+    console.log('Backend response status:', simResponse.status)
+    console.log('Backend response headers:', Object.fromEntries(simResponse.headers.entries()))
+    
     if (!simResponse.ok) {
       const errorData = await simResponse.json()
+      console.log('Backend error response:', errorData)
       return NextResponse.json(errorData, { status: simResponse.status })
     }
     

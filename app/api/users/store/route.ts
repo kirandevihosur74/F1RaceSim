@@ -42,13 +42,37 @@ export async function POST(request: NextRequest) {
   try {
     const userData = await request.json()
     
-    // Validate required fields
-    if (!userData.id || !userData.email) {
+    // Validate required fields with better error messages
+    if (!userData.id) {
       return NextResponse.json(
-        { error: 'Missing required fields: id and email' },
+        { error: 'Missing required field: id' },
         { status: 400 }
       )
     }
+    
+    if (!userData.email) {
+      return NextResponse.json(
+        { error: 'Missing required field: email' },
+        { status: 400 }
+      )
+    }
+    
+    // Ensure id is a valid string
+    if (typeof userData.id !== 'string' || userData.id.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 400 }
+      )
+    }
+    
+    // Clean the user ID
+    const cleanUserId = userData.id.trim()
+    
+    console.log('Processing user data:', {
+      originalId: userData.id,
+      cleanUserId,
+      email: userData.email
+    })
 
     // Check if user already exists by querying the UserIdIndex
     try {
@@ -58,8 +82,8 @@ export async function POST(request: NextRequest) {
         KeyConditionExpression: 'user_id = :userId',
         FilterExpression: 'begins_with(strategy_id, :userPrefix)',
         ExpressionAttributeValues: {
-          ':userId': userData.id,
-          ':userPrefix': `USER_${userData.id}`,
+          ':userId': cleanUserId,
+          ':userPrefix': `USER_${cleanUserId}`,
         },
       })
       
@@ -68,7 +92,7 @@ export async function POST(request: NextRequest) {
       if (existingUser.Items && existingUser.Items.length > 0) {
         // Update existing user profile
         const userProfile = existingUser.Items.find(item => 
-          item.strategy_id === `USER_${userData.id}_PROFILE`
+          item.strategy_id === `USER_${cleanUserId}_PROFILE`
         )
         
         if (userProfile) {
@@ -103,10 +127,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new user profile
-    const userProfileId = `USER_${userData.id}_PROFILE`
+    const userProfileId = `USER_${cleanUserId}_PROFILE`
     const newUserProfile = {
       strategy_id: userProfileId,
-      user_id: userData.id,
+      user_id: cleanUserId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       type: 'USER_PROFILE',

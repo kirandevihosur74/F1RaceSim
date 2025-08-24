@@ -43,7 +43,18 @@ const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
 
 // Helper functions for usage management
 const getUsageKey = (userId: string, feature: string, date: string) => {
-  return `USER_${userId}_USAGE_${feature}_${date}`
+  // Validate inputs
+  if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+    throw new Error('Invalid userId provided to getUsageKey')
+  }
+  if (!feature || typeof feature !== 'string' || feature.trim().length === 0) {
+    throw new Error('Invalid feature provided to getUsageKey')
+  }
+  if (!date || typeof date !== 'string' || date.trim().length === 0) {
+    throw new Error('Invalid date provided to getUsageKey')
+  }
+  
+  return `USER_${userId.trim()}_USAGE_${feature.trim()}_${date.trim()}`
 }
 
 const getCurrentDate = () => {
@@ -84,6 +95,13 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id
+    
+    // Validate userId
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      console.error('Invalid userId in session:', userId)
+      return NextResponse.json({ error: 'Invalid user session' }, { status: 400 })
+    }
+    
     const { searchParams } = new URL(request.url)
     const planId = searchParams.get('planId') || 'free'
     
@@ -95,7 +113,15 @@ export async function GET(request: NextRequest) {
     for (const feature of features) {
       try {
         // Query usage for this feature and date
-        const usageKey = getUsageKey(userId, feature, currentDate)
+        let usageKey: string
+        try {
+          usageKey = getUsageKey(userId, feature, currentDate)
+        } catch (keyError) {
+          console.error(`Error generating usage key for ${feature}:`, keyError)
+          // Skip this feature if we can't generate a valid key
+          continue
+        }
+        
         const getCommand = new GetCommand({
           TableName: METADATA_TABLE,
           Key: { strategy_id: usageKey }
@@ -145,6 +171,12 @@ export async function POST(request: NextRequest) {
     const { feature, planId = 'free' } = await request.json()
     const userId = session.user.id
 
+    // Validate userId
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      console.error('Invalid userId in session:', userId)
+      return NextResponse.json({ error: 'Invalid user session' }, { status: 400 })
+    }
+
     if (!feature) {
       return NextResponse.json({ error: 'Feature is required' }, { status: 400 })
     }
@@ -152,7 +184,14 @@ export async function POST(request: NextRequest) {
     const plan = getCurrentUserPlan(planId)
     const limit = getFeatureLimit(plan, feature)
     const currentDate = getCurrentDate()
-    const usageKey = getUsageKey(userId, feature, currentDate)
+    
+    let usageKey: string
+    try {
+      usageKey = getUsageKey(userId, feature, currentDate)
+    } catch (keyError) {
+      console.error('Error generating usage key:', keyError)
+      return NextResponse.json({ error: 'Invalid usage key generation' }, { status: 400 })
+    }
 
     // Get current usage
     let currentUsage = 0

@@ -45,7 +45,13 @@ export async function GET(request: NextRequest) {
       // Process each user profile
       users = userProfiles.map((profile: any) => {
         // Extract user ID from strategy_id (e.g., "USER_123_PROFILE" -> "123")
-        const userId = profile.strategy_id?.replace('USER_', '').replace('_PROFILE', '') || profile.user_id || 'unknown'
+        let userId = profile.strategy_id?.replace('USER_', '').replace('_PROFILE', '') || profile.user_id || 'unknown'
+        
+        // Validate and clean userId
+        if (!userId || userId === 'unknown') {
+          console.warn('Invalid userId found in profile:', profile)
+          userId = 'unknown'
+        }
         
         console.log(`Processing profile for user ${userId}:`, {
           strategy_id: profile.strategy_id,

@@ -19,16 +19,30 @@ const getNextAuthUrl = () => {
 // Function to store user in DynamoDB
 const storeUserInDatabase = async (user: any, account: any, profile: any) => {
   try {
-    // Use Google profile ID as the primary user ID
-    const userId = profile?.sub || account?.providerAccountId || user.id || user.email
+    // Validate that we have a valid user ID
+    let userId = profile?.sub || account?.providerAccountId || user.id || user.email
+    
+    // Ensure userId is a string and not undefined
+    if (!userId || typeof userId !== 'string') {
+      console.error('Invalid user ID:', { profile, account, user })
+      return
+    }
+    
+    // Clean the userId to ensure it's valid for DynamoDB
+    userId = userId.toString().trim()
+    
+    if (userId.length === 0) {
+      console.error('Empty user ID after cleaning')
+      return
+    }
     
     const userData = {
       id: userId,
-      email: user.email,
-      name: user.name,
-      image: user.image,
+      email: user.email || 'unknown@example.com',
+      name: user.name || 'Unknown User',
+      image: user.image || null,
       provider: 'google',
-      providerId: account?.providerAccountId || user.id,
+      providerId: account?.providerAccountId || user.id || userId,
     }
 
     console.log('Storing user data:', {
