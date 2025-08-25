@@ -44,22 +44,32 @@ export function useUsage(): UseUsageReturn {
     }
 
     try {
-      const response = await fetch('/api/users/usage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feature, planId: 'free' }) // TODO: Get actual plan
-      })
+      // Use GET request to check usage without incrementing
+      const response = await fetch(`/api/users/usage?planId=free&feature=${feature}`)
 
       if (!response.ok) {
         const errorData = await response.json()
-        if (response.status === 429) {
-          return errorData.details
-        }
         throw new Error(errorData.error || 'Failed to check usage')
       }
 
       const data = await response.json()
-      return data.usage
+      const featureUsage = data.usage.find((u: any) => u.feature === feature)
+      
+      if (!featureUsage) {
+        throw new Error('Feature usage not found')
+      }
+
+      // Return usage check result
+      return {
+        allowed: featureUsage.limit === -1 || featureUsage.current < featureUsage.limit,
+        current: featureUsage.current,
+        limit: featureUsage.limit,
+        remaining: Math.max(0, featureUsage.limit - featureUsage.current),
+        resetDate: featureUsage.resetDate,
+        message: featureUsage.limit === -1 
+          ? 'Unlimited usage available' 
+          : `You have ${Math.max(0, featureUsage.limit - featureUsage.current)} simulations remaining today`
+      }
     } catch (err) {
       console.error('Error checking usage:', err)
       throw err

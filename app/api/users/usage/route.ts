@@ -104,9 +104,16 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url)
     const planId = searchParams.get('planId') || 'free'
+    const requestedFeature = searchParams.get('feature')
+    
+    // Validate requested feature if specified
+    const validFeatures = ['simulations', 'strategies', 'ai_recommendations']
+    if (requestedFeature && !validFeatures.includes(requestedFeature)) {
+      return NextResponse.json({ error: 'Invalid feature specified' }, { status: 400 })
+    }
     
     const plan = getCurrentUserPlan(planId)
-    const features = ['simulations', 'strategies', 'ai_recommendations']
+    const features = requestedFeature ? [requestedFeature] : validFeatures
     const currentDate = getCurrentDate()
     const usageSummary = []
 
