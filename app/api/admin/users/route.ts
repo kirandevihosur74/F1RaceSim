@@ -36,8 +36,33 @@ export async function GET(request: NextRequest) {
       // Scan the metadata table to find user profiles
       const allItems = await scanTable(metadataTable)
       
+      // Filter out any items with invalid keys that could cause pk.match errors
+      const validItems = allItems.filter((item: any) => {
+        // Ensure item has required properties
+        if (!item || typeof item !== 'object') {
+          console.warn('Invalid item found:', item)
+          return false
+        }
+        
+        // Ensure strategy_id is valid
+        if (!item.strategy_id || typeof item.strategy_id !== 'string') {
+          console.warn('Item with invalid strategy_id found:', item)
+          return false
+        }
+        
+        // Ensure user_id is valid if present
+        if (item.user_id && typeof item.user_id !== 'string') {
+          console.warn('Item with invalid user_id found:', item)
+          return false
+        }
+        
+        return true
+      })
+      
+      console.log(`Scanned ${allItems.length} items, found ${validItems.length} valid items`)
+      
       // Filter for user profile items
-      const userProfiles = allItems.filter((item: any) => 
+      const userProfiles = validItems.filter((item: any) => 
         item.type === 'USER_PROFILE' || 
         (item.strategy_id?.startsWith('USER_') && item.strategy_id?.endsWith('_PROFILE'))
       )
@@ -65,11 +90,16 @@ export async function GET(request: NextRequest) {
         // Find usage records for this user (current day)
         const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
         
-        const userUsageRecords = allItems.filter((item: any) => 
-          item.user_id === userId && 
-          item.type === 'USER_USAGE' && 
-          item.date === currentDate
-        )
+        const userUsageRecords = validItems.filter((item: any) => {
+          // Additional validation for usage records
+          if (!item.user_id || !item.type || !item.date) {
+            return false
+          }
+          
+          return item.user_id === userId && 
+                 item.type === 'USER_USAGE' && 
+                 item.date === currentDate
+        })
         
         // Calculate usage statistics from USER_USAGE records
         const simulationUsage = userUsageRecords.find((item: any) => item.feature === 'simulations')
@@ -130,12 +160,24 @@ export async function GET(request: NextRequest) {
         // If no last active, use the most recent usage record
         if (!lastActive || lastActive === profile.created_at) {
           if (userUsageRecords.length > 0) {
-            const timestamps = userUsageRecords.map((item: any) => 
-              new Date(item.created_at || item.updated_at || item.timestamp || 0).getTime()
-            )
-            const mostRecent = Math.max(...timestamps)
-            if (mostRecent > 0) {
-              lastActive = new Date(mostRecent).toISOString()
+            const timestamps = userUsageRecords.map((item: any) => {
+              try {
+                const dateStr = item.created_at || item.updated_at || item.timestamp
+                if (!dateStr) return 0
+                
+                const date = new Date(dateStr)
+                return isNaN(date.getTime()) ? 0 : date.getTime()
+              } catch (error) {
+                console.warn('Error parsing date for item:', item, error)
+                return 0
+              }
+            }).filter(time => time > 0)
+            
+            if (timestamps.length > 0) {
+              const mostRecent = Math.max(...timestamps)
+              if (mostRecent > 0) {
+                lastActive = new Date(mostRecent).toISOString()
+              }
             }
           }
         }
