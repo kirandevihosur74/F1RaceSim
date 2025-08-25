@@ -1,13 +1,21 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import RaceStrategyForm from '@/components/RaceStrategyForm'
-import { useSimulationStore } from '@/store/simulationStore'
+import { SessionProvider } from 'next-auth/react'
+import RaceStrategyForm from '../../components/RaceStrategyForm'
+import { useSimulationStore } from '../../store/simulationStore'
 
 // Mock the store
 jest.mock('@/store/simulationStore')
 
 const mockUseSimulationStore = useSimulationStore as jest.MockedFunction<typeof useSimulationStore>
+
+// Wrapper component to provide SessionProvider
+const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+  <SessionProvider>
+    {children}
+  </SessionProvider>
+)
 
 describe('RaceStrategyForm', () => {
   const mockStore = {
@@ -36,7 +44,7 @@ describe('RaceStrategyForm', () => {
   })
 
   it('renders the form with all inputs', () => {
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     expect(screen.getByText('Race Strategy Configuration')).toBeInTheDocument()
     expect(screen.getByLabelText(/Weather Conditions/)).toBeInTheDocument()
@@ -47,7 +55,7 @@ describe('RaceStrategyForm', () => {
   })
 
   it('displays current strategy values', () => {
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     // Check weather dropdown
     const weatherSelect = screen.getByLabelText(/Weather Conditions/)
@@ -74,7 +82,7 @@ describe('RaceStrategyForm', () => {
 
   it('allows adding pit stops', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const addPitStopButton = screen.getByText('Add Pit Stop')
     expect(addPitStopButton).toBeInTheDocument()
@@ -82,7 +90,7 @@ describe('RaceStrategyForm', () => {
 
   it('allows removing pit stops', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const removeButtons = screen.getAllByRole('button').filter(button => 
       button.querySelector('svg') // Assuming Trash2 icon is rendered as SVG
@@ -93,7 +101,7 @@ describe('RaceStrategyForm', () => {
 
   it('allows adding tires', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const addTireButton = screen.getByText('Add Tire')
     expect(addTireButton).toBeInTheDocument()
@@ -101,7 +109,7 @@ describe('RaceStrategyForm', () => {
 
   it('allows removing tires', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const removeButtons = screen.getAllByRole('button').filter(button => 
       button.querySelector('svg') // Assuming Trash2 icon is rendered as SVG
@@ -111,13 +119,13 @@ describe('RaceStrategyForm', () => {
   })
 
   it('displays pit stop inputs', () => {
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     const pitStopInputs = screen.getAllByPlaceholderText('Lap number')
     expect(pitStopInputs.length).toBeGreaterThan(0)
   })
 
   it('displays tire selection dropdowns', () => {
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     const tireSelects = screen.getAllByRole('combobox').filter(select => 
       select.getAttribute('aria-label')?.includes('Tire Compounds') || 
       select.parentElement?.textContent?.includes('Tire Compounds')
@@ -126,14 +134,14 @@ describe('RaceStrategyForm', () => {
   })
 
   it('displays driver style dropdown', () => {
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     const driverSelect = screen.getByLabelText(/Driver Style/)
     expect(driverSelect).toBeInTheDocument()
   })
 
   it('submits form and calls runSimulation', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const submitButton = screen.getByRole('button', { name: /Run Simulation/ })
     await user.click(submitButton)
@@ -147,7 +155,7 @@ describe('RaceStrategyForm', () => {
       isLoading: true,
     })
     
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const submitButton = screen.getByRole('button', { name: /Simulating/ })
     expect(submitButton).toBeDisabled()
@@ -155,7 +163,7 @@ describe('RaceStrategyForm', () => {
 
   it('validates pit stop input values', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const pitStopInputs = screen.getAllByPlaceholderText('Lap number')
     const firstInput = pitStopInputs[0]
@@ -173,7 +181,7 @@ describe('RaceStrategyForm', () => {
 
   it('handles weather condition changes', async () => {
     const user = userEvent.setup()
-    render(<RaceStrategyForm />)
+    render(<RaceStrategyForm />, { wrapper: TestWrapper })
     
     const weatherSelect = screen.getByLabelText(/Weather Conditions/)
     await user.selectOptions(weatherSelect, 'wet')

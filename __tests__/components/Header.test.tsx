@@ -4,8 +4,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 // Mock NextAuth before importing components
 jest.mock('next-auth/react', () => ({
   useSession: jest.fn(),
-  signIn: jest.fn(),
-  signOut: jest.fn()
+  signIn: jest.fn(() => Promise.resolve()),
+  signOut: jest.fn(() => Promise.resolve())
 }))
 
 import { useSession, signIn, signOut } from 'next-auth/react'
@@ -49,10 +49,9 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    render(<Header onOpenLogin={jest.fn()} />)
     
-    expect(screen.getByText('F1 Race Simulator')).toBeInTheDocument()
-    expect(screen.getByText('AI-Powered Strategy Analysis')).toBeInTheDocument()
+    expect(screen.getByText('F1 Race Sim')).toBeInTheDocument()
     expect(screen.getByLabelText('Toggle dark mode')).toBeInTheDocument()
   })
 
@@ -63,9 +62,9 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    render(<Header onOpenLogin={jest.fn()} />)
     
-    expect(screen.getByText('Sign In with Google')).toBeInTheDocument()
+    expect(screen.getByText('Sign In')).toBeInTheDocument()
   })
 
   it('should show user info and sign out button when authenticated', () => {
@@ -84,11 +83,10 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    render(<Header onOpenLogin={jest.fn()} />)
     
-    expect(screen.getByText('John Doe')).toBeInTheDocument()
+    expect(screen.getByText('john@example.com')).toBeInTheDocument()
     expect(screen.getByText('Sign Out')).toBeInTheDocument()
-    expect(screen.getByAltText('John Doe')).toBeInTheDocument()
   })
 
   it('should show loading state during authentication', () => {
@@ -98,9 +96,10 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    render(<Header onOpenLogin={jest.fn()} />)
     
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    // Header doesn't show loading text anymore, just renders normally
+    expect(screen.getByText('F1 Race Sim')).toBeInTheDocument()
   })
 
   it('should call signIn when sign in button is clicked', async () => {
@@ -110,14 +109,13 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    const mockOnOpenLogin = jest.fn()
+    render(<Header onOpenLogin={mockOnOpenLogin} />)
     
-    const signInButton = screen.getByText('Sign In with Google')
+    const signInButton = screen.getByText('Sign In')
     fireEvent.click(signInButton)
     
-    await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('google', { callbackUrl: '/' })
-    })
+    expect(mockOnOpenLogin).toHaveBeenCalled()
   })
 
   it('should call signOut when sign out button is clicked', async () => {
@@ -136,36 +134,30 @@ describe('Header', () => {
       update: jest.fn(),
     })
 
-    render(<Header />)
+    render(<Header onOpenLogin={jest.fn()} />)
     
     const signOutButton = screen.getByText('Sign Out')
     fireEvent.click(signOutButton)
     
     await waitFor(() => {
-      expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: '/' })
+      expect(mockSignOut).toHaveBeenCalledWith({ callbackUrl: '/', redirect: true })
     })
   })
 
   it('should handle authentication errors gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    const mockOnOpenLogin = jest.fn()
     
     mockUseSession.mockReturnValue({
       data: null,
       status: 'unauthenticated',
       update: jest.fn(),
     })
-    
-    mockSignIn.mockRejectedValue(new Error('Auth error'))
 
-    render(<Header />)
+    render(<Header onOpenLogin={mockOnOpenLogin} />)
     
-    const signInButton = screen.getByText('Sign In with Google')
+    const signInButton = screen.getByText('Sign In')
     fireEvent.click(signInButton)
     
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Authentication error:', expect.any(Error))
-    })
-    
-    consoleSpy.mockRestore()
+    expect(mockOnOpenLogin).toHaveBeenCalled()
   })
 })

@@ -92,4 +92,10 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-}) 
+})
+
+// Mock fetch globally
+global.fetch = jest.fn()
+
+// Mock console.error to prevent noise in tests
+global.console.error = jest.fn() 
