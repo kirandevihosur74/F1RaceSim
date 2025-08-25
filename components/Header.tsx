@@ -65,9 +65,9 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
           </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors font-medium"
           >
-            <span className="text-sm">Sign Out</span>
+            Sign Out
           </button>
         </div>
       )
@@ -76,51 +76,56 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
     return (
       <button
         onClick={onOpenLogin}
-        className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+        className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors font-medium"
       >
-        <LogIn className="w-4 h-4" />
-        <span>Sign In</span>
+        Sign In
       </button>
     )
   }
 
   return (
     <header className="sticky top-0 z-50 flex justify-center py-4">
-      <div className="bg-white dark:bg-gray-800 rounded-full shadow-lg px-8 py-3 flex items-center justify-between min-w-[600px] max-w-4xl">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg px-8 py-4 flex items-center justify-between min-w-[800px] max-w-6xl">
         {/* Left side - Logo and App Name */}
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg font-bold">🏎️</span>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center shadow-md">
+            <span className="text-white text-xl font-bold">🏎️</span>
           </div>
-          <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
             F1 Race Sim
           </span>
         </div>
 
         {/* Center - Navigation Links */}
-        <nav className="flex items-center space-x-6">
-          <Link href="/pricing" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+        <nav className="flex items-center space-x-8">
+          <Link href="/pricing" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
             Pricing
           </Link>
+          <Link href="/features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+            Features
+          </Link>
           {session?.user && (
-            <Link href="/admin" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+            <Link href="/admin" className="text-xl font-bold text-gray-900 dark:text-gray-100">
               Admin
             </Link>
           )}
+          <Link href="/docs" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+            Docs
+          </Link>
         </nav>
 
-        {/* Right side - User Section and Theme Toggle */}
-        <div className="flex items-center space-x-4">
+        {/* Right side - Buttons */}
+        <div className="flex items-center space-x-3">
           {renderAuthSection()}
           <button
             onClick={handleThemeToggle}
-            className="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors font-medium"
             aria-label="Toggle dark mode"
           >
             {isDark ? (
-              <Sun className="w-4 h-4 text-yellow-400" />
+              <Sun className="w-4 h-4 text-yellow-500" />
             ) : (
-              <Moon className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+              <Moon className="w-4 h-4 text-gray-600" />
             )}
           </button>
         </div>
