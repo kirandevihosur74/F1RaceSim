@@ -58,27 +58,16 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
     if (session?.user) {
       return (
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            {session.user.image ? (
-              <img 
-                src={session.user.image} 
-                alt={session.user.name || 'User'} 
-                className="w-6 h-6 rounded-full"
-              />
-            ) : (
-              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                U
-              </div>
-            )}
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {session.user.name || session.user.email}
+          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
+            <span className="font-medium">
+              {session.user.email?.split('@')[0]}@...
             </span>
           </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
           >
-            <span>Sign Out</span>
+            <span className="text-sm">Sign Out</span>
           </button>
         </div>
       )
@@ -96,39 +85,44 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2 text-2xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              <span>F1 Race Sim</span>
-            </Link>
+    <header className="sticky top-0 z-50 flex justify-center py-4">
+      <div className="bg-white dark:bg-gray-800 rounded-full shadow-lg px-8 py-3 flex items-center justify-between min-w-[600px] max-w-4xl">
+        {/* Left side - Logo and App Name */}
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg font-bold">🏎️</span>
           </div>
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            F1 Race Sim
+          </span>
+        </div>
 
-          <div className="flex items-center space-x-6">
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/pricing" className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                <span>Pricing</span>
-              </Link>
-              {session?.user && (
-                <Link href="/admin" className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  <span>Admin</span>
-                </Link>
-              )}
-            </nav>
-            {renderAuthSection()}
-            <button
-              onClick={handleThemeToggle}
-              className="p-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              aria-label="Toggle dark mode"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-700 dark:text-gray-200" />
-              )}
-            </button>
-          </div>
+        {/* Center - Navigation Links */}
+        <nav className="flex items-center space-x-6">
+          <Link href="/pricing" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+            Pricing
+          </Link>
+          {session?.user && (
+            <Link href="/admin" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
+              Admin
+            </Link>
+          )}
+        </nav>
+
+        {/* Right side - User Section and Theme Toggle */}
+        <div className="flex items-center space-x-4">
+          {renderAuthSection()}
+          <button
+            onClick={handleThemeToggle}
+            className="p-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4 text-yellow-400" />
+            ) : (
+              <Moon className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+            )}
+          </button>
         </div>
       </div>
     </header>

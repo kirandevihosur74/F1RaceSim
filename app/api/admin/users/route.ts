@@ -62,21 +62,30 @@ export async function GET(request: NextRequest) {
           type: profile.type
         })
         
-        // Find related items for this user
-        const userStrategies = allItems.filter((item: any) => 
-          item.user_id === userId && item.type === 'STRATEGY'
+        // Find usage records for this user (current day)
+        const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+        
+        const userUsageRecords = allItems.filter((item: any) => 
+          item.user_id === userId && 
+          item.type === 'USER_USAGE' && 
+          item.date === currentDate
         )
         
-        const userSimulations = allItems.filter((item: any) => 
-          item.user_id === userId && item.type === 'SIMULATION'
-        )
-
-        // Calculate usage statistics
-        const totalStrategies = userStrategies.length
-        const totalSimulations = userSimulations.length
-        const totalAIRecommendations = userStrategies.reduce((sum: number, strategy: any) => 
-          sum + (strategy.ai_recommendations || 0), 0
-        )
+        // Calculate usage statistics from USER_USAGE records
+        const simulationUsage = userUsageRecords.find((item: any) => item.feature === 'simulations')
+        const strategyUsage = userUsageRecords.find((item: any) => item.feature === 'strategies')
+        const aiRecommendationUsage = userUsageRecords.find((item: any) => item.feature === 'ai_recommendations')
+        
+        const totalSimulations = simulationUsage?.current_count || 0
+        const totalStrategies = strategyUsage?.current_count || 0
+        const totalAIRecommendations = aiRecommendationUsage?.current_count || 0
+        
+        console.log(`Usage for user ${userId}:`, {
+          simulations: totalSimulations,
+          strategies: totalStrategies,
+          aiRecommendations: totalAIRecommendations,
+          date: currentDate
+        })
 
         // Determine plan based on user data or default to free
         let plan = 'free'
@@ -118,11 +127,10 @@ export async function GET(request: NextRequest) {
           status = 'inactive'
         }
         
-        // If no last active, use the most recent strategy or simulation
+        // If no last active, use the most recent usage record
         if (!lastActive || lastActive === profile.created_at) {
-          const recentItems = [...userStrategies, ...userSimulations]
-          if (recentItems.length > 0) {
-            const timestamps = recentItems.map((item: any) => 
+          if (userUsageRecords.length > 0) {
+            const timestamps = userUsageRecords.map((item: any) => 
               new Date(item.created_at || item.updated_at || item.timestamp || 0).getTime()
             )
             const mostRecent = Math.max(...timestamps)
