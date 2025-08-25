@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Moon, Sun, LogIn } from 'lucide-react'
+import { Moon, Sun, LogIn, LogOut } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useLogoutTracking } from '../lib/hooks/useLogoutTracking'
@@ -65,9 +65,10 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
           </div>
           <button
             onClick={handleSignOut}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors font-medium"
+            className="p-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            aria-label="Sign Out"
           >
-            Sign Out
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       )

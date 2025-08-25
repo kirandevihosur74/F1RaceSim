@@ -86,7 +86,7 @@ describe('Header', () => {
     render(<Header onOpenLogin={jest.fn()} />)
     
     expect(screen.getByText('john@example.com')).toBeInTheDocument()
-    expect(screen.getByText('Sign Out')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sign Out')).toBeInTheDocument()
   })
 
   it('should show loading state during authentication', () => {
@@ -136,7 +136,7 @@ describe('Header', () => {
 
     render(<Header onOpenLogin={jest.fn()} />)
     
-    const signOutButton = screen.getByText('Sign Out')
+    const signOutButton = screen.getByLabelText('Sign Out')
     fireEvent.click(signOutButton)
     
     await waitFor(() => {
