@@ -35,10 +35,21 @@ const createDynamoDBClient = () => {
   })
 }
 
-const client = createDynamoDBClient()
+let client: DynamoDBClient
+let dynamoDb: DynamoDBDocumentClient
 
-// Create DynamoDB Document client for easier operations
-export const dynamoDb = DynamoDBDocumentClient.from(client)
+try {
+  client = createDynamoDBClient()
+  // Create DynamoDB Document client for easier operations
+  dynamoDb = DynamoDBDocumentClient.from(client)
+  console.log('DynamoDB client initialized successfully')
+} catch (error) {
+  console.error('Failed to initialize DynamoDB client:', error)
+  // Create a fallback client that will throw meaningful errors
+  throw new Error(`DynamoDB client initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+}
+
+export { dynamoDb }
 
 // Table names - use actual table names from your infrastructure
 export const TABLES = {
@@ -52,26 +63,64 @@ export const TABLES = {
 // Helper functions for common operations
 export const scanTable = async (tableName: string) => {
   try {
+    // Validate table name
+    if (!tableName || typeof tableName !== 'string') {
+      throw new Error(`Invalid table name: ${tableName}`)
+    }
+    
     const command = new ScanCommand({
       TableName: tableName
     })
+    
+    console.log(`Sending scan command to table: ${tableName}`)
     const result = await dynamoDb.send(command)
     
+    console.log(`Raw scan result for table ${tableName}:`, {
+      count: result.Count,
+      scannedCount: result.ScannedCount,
+      itemsLength: result.Items?.length || 0
+    })
+    
     // Validate and filter items to prevent pk.match errors
-    const validItems = (result.Items || []).filter((item: any) => {
-      // Ensure item exists and is an object
-      if (!item || typeof item !== 'object') {
-        console.warn('Invalid item found in scan result:', item)
+    const validItems = (result.Items || []).filter((item: any, index: number) => {
+      try {
+        // Ensure item exists and is an object
+        if (!item || typeof item !== 'object') {
+          console.warn(`Invalid item at index ${index}:`, item)
+          return false
+        }
+        
+        // Log the structure of each item for debugging
+        console.log(`Item ${index} structure:`, {
+          keys: Object.keys(item),
+          strategy_id: item.strategy_id,
+          type: item.type,
+          user_id: item.user_id
+        })
+        
+        // Ensure strategy_id exists and is a string (primary key)
+        if (!item.strategy_id || typeof item.strategy_id !== 'string') {
+          console.warn(`Item at index ${index} missing or invalid strategy_id:`, item)
+          return false
+        }
+        
+        // Additional validation for specific item types
+        if (item.type === 'USER_USAGE') {
+          if (!item.user_id || typeof item.user_id !== 'string') {
+            console.warn(`USER_USAGE item at index ${index} missing user_id:`, item)
+            return false
+          }
+          if (!item.date || typeof item.date !== 'string') {
+            console.warn(`USER_USAGE item at index ${index} missing date:`, item)
+            return false
+          }
+        }
+        
+        return true
+      } catch (itemError) {
+        console.error(`Error processing item at index ${index}:`, itemError, 'Item:', item)
         return false
       }
-      
-      // Ensure strategy_id exists and is a string (primary key)
-      if (!item.strategy_id || typeof item.strategy_id !== 'string') {
-        console.warn('Item missing or invalid strategy_id:', item)
-        return false
-      }
-      
-      return true
     })
     
     console.log(`Scanned table ${tableName}: ${result.Items?.length || 0} total items, ${validItems.length} valid items`)
@@ -79,6 +128,17 @@ export const scanTable = async (tableName: string) => {
     return validItems
   } catch (error) {
     console.error(`Error scanning table ${tableName}:`, error)
+    
+    // Check if it's the specific pk.match error
+    if (error instanceof Error && error.message.includes('pk.match')) {
+      console.error('pk.match error detected - this usually means malformed primary key data')
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      })
+    }
+    
     throw error
   }
 }

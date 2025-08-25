@@ -26,13 +26,17 @@ export function useUsage(): UseUsageReturn {
     try {
       const response = await fetch(`/api/users/usage?planId=free`) // TODO: Get actual plan
       if (!response.ok) {
-        throw new Error('Failed to fetch usage')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Usage API error:', response.status, errorData)
+        throw new Error(errorData.error || `Failed to fetch usage: ${response.status}`)
       }
       
       const data = await response.json()
-      setUsage(data.usage)
+      setUsage(data.usage || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      console.error('Error in fetchUsage:', err)
+      // Don't crash the entire page, just set a generic error
+      setError('Unable to load usage data')
     } finally {
       setLoading(false)
     }
@@ -48,31 +52,49 @@ export function useUsage(): UseUsageReturn {
       const response = await fetch(`/api/users/usage?planId=free&feature=${feature}`)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to check usage')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Usage check API error:', response.status, errorData)
+        throw new Error(errorData.error || `Failed to check usage: ${response.status}`)
       }
 
       const data = await response.json()
-      const featureUsage = data.usage.find((u: any) => u.feature === feature)
+      const featureUsage = data.usage?.find((u: any) => u.feature === feature)
       
       if (!featureUsage) {
-        throw new Error('Feature usage not found')
+        console.warn('Feature usage not found for:', feature)
+        // Return a safe fallback
+        return {
+          allowed: true, // Allow by default if we can't determine
+          current: 0,
+          limit: -1, // Unlimited
+          remaining: -1,
+          resetDate: new Date(),
+          message: 'Usage data unavailable, allowing access'
+        }
       }
 
       // Return usage check result
       return {
         allowed: featureUsage.limit === -1 || featureUsage.current < featureUsage.limit,
-        current: featureUsage.current,
-        limit: featureUsage.limit,
-        remaining: Math.max(0, featureUsage.limit - featureUsage.current),
-        resetDate: featureUsage.resetDate,
+        current: featureUsage.current || 0,
+        limit: featureUsage.limit || -1,
+        remaining: featureUsage.limit === -1 ? -1 : Math.max(0, (featureUsage.limit || 0) - (featureUsage.current || 0)),
+        resetDate: featureUsage.resetDate || new Date().toISOString(),
         message: featureUsage.limit === -1 
           ? 'Unlimited usage available' 
-          : `You have ${Math.max(0, featureUsage.limit - featureUsage.current)} simulations remaining today`
+          : `You have ${Math.max(0, (featureUsage.limit || 0) - (featureUsage.current || 0))} simulations remaining today`
       }
     } catch (err) {
       console.error('Error checking usage:', err)
-      throw err
+      // Return a safe fallback instead of throwing
+      return {
+        allowed: true, // Allow by default if we can't determine
+        current: 0,
+        limit: -1, // Unlimited
+        remaining: -1,
+        resetDate: new Date(),
+        message: 'Usage check failed, allowing access'
+      }
     }
   }, [session?.user?.id])
 
@@ -89,12 +111,15 @@ export function useUsage(): UseUsageReturn {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Usage increment API error:', response.status, errorData)
+        
         if (response.status === 429) {
           // Usage limit exceeded
           return false
         }
-        throw new Error(errorData.error || 'Failed to increment usage')
+        
+        throw new Error(errorData.error || `Failed to increment usage: ${response.status}`)
       }
 
       // Refresh usage data
@@ -102,6 +127,7 @@ export function useUsage(): UseUsageReturn {
       return true
     } catch (err) {
       console.error('Error incrementing usage:', err)
+      // Don't crash the page, just return false
       return false
     }
   }, [session?.user?.id, fetchUsage])
@@ -111,7 +137,14 @@ export function useUsage(): UseUsageReturn {
   }, [fetchUsage])
 
   useEffect(() => {
-    fetchUsage()
+    // Wrap in try-catch to prevent unhandled errors from crashing the page
+    try {
+      fetchUsage()
+    } catch (error) {
+      console.error('Error in useUsage useEffect:', error)
+      setError('Failed to initialize usage tracking')
+      setLoading(false)
+    }
   }, [fetchUsage])
 
   return {

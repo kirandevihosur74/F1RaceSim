@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import Providers from '../components/Providers'
+import ErrorBoundary from '../components/ErrorBoundary'
+import GlobalErrorHandler from '../components/GlobalErrorHandler'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -22,8 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
         <Providers>
-          <Toaster position="top-center" />
-          {children}
+          <ErrorBoundary>
+            <GlobalErrorHandler />
+            <Toaster position="top-center" />
+            {children}
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>

@@ -1,5 +1,10 @@
 import PricingPage from '../../components/PricingPage'
+import ErrorBoundary from '../../components/ErrorBoundary'
 
 export default function Pricing() {
-  return <PricingPage />
+  return (
+    <ErrorBoundary>
+      <PricingPage />
+    </ErrorBoundary>
+  )
 }
