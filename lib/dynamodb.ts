@@ -56,7 +56,27 @@ export const scanTable = async (tableName: string) => {
       TableName: tableName
     })
     const result = await dynamoDb.send(command)
-    return result.Items || []
+    
+    // Validate and filter items to prevent pk.match errors
+    const validItems = (result.Items || []).filter((item: any) => {
+      // Ensure item exists and is an object
+      if (!item || typeof item !== 'object') {
+        console.warn('Invalid item found in scan result:', item)
+        return false
+      }
+      
+      // Ensure strategy_id exists and is a string (primary key)
+      if (!item.strategy_id || typeof item.strategy_id !== 'string') {
+        console.warn('Item missing or invalid strategy_id:', item)
+        return false
+      }
+      
+      return true
+    })
+    
+    console.log(`Scanned table ${tableName}: ${result.Items?.length || 0} total items, ${validItems.length} valid items`)
+    
+    return validItems
   } catch (error) {
     console.error(`Error scanning table ${tableName}:`, error)
     throw error
