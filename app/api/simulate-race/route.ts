@@ -23,39 +23,68 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json()
     
-    // Check usage before allowing simulation (GET request, not POST)
-    const usageResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage?planId=free`)
+    // Check usage before allowing simulation (direct logic instead of internal API call)
+    console.log('Checking usage directly for user:', userId)
     
-    if (!usageResponse.ok) {
-      throw new Error('Failed to check usage')
+    // Declare variables in outer scope
+    let currentUsage = 0
+    let limit = 1 // Default to free plan limit
+    
+    try {
+      // Import the usage logic directly
+      const { getCurrentUserPlan } = await import('../../../lib/pricing')
+      const { dynamoDb, TABLES } = await import('../../../lib/dynamodb')
+      
+      const plan = getCurrentUserPlan('free')
+      const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+      const usageKey = `USER_${userId}_USAGE_simulations_${currentDate}`
+      
+      // Get current usage from DynamoDB
+      const { GetCommand } = await import('@aws-sdk/lib-dynamodb')
+      const getCommand = new GetCommand({
+        TableName: TABLES.STRATEGY_METADATA,
+        Key: { strategy_id: usageKey }
+      })
+      
+      const result = await dynamoDb.send(getCommand)
+      currentUsage = result.Item?.current_count || 0
+      limit = plan.limits.simulationsPerDay
+      
+      console.log('Usage check result:', {
+        current: currentUsage,
+        limit,
+        remaining: Math.max(0, limit - currentUsage)
+      })
+      
+      // Check if user can run simulation
+      if (limit !== -1 && currentUsage >= limit) {
+        const resetDate = new Date()
+        resetDate.setDate(resetDate.getDate() + 1)
+        resetDate.setHours(0, 0, 0, 0)
+        
+        return NextResponse.json({ 
+          error: 'Simulation limit reached',
+          details: {
+            message: 'You have reached your daily simulation limit. Upgrade to Pro for unlimited simulations!',
+            current: currentUsage,
+            limit,
+            remaining: 0,
+            resetDate: resetDate.toISOString()
+          }
+        }, { status: 429 })
+      }
+      
+      console.log('Usage check passed for user:', userId, {
+        current: currentUsage,
+        limit,
+        remaining: Math.max(0, limit - currentUsage)
+      })
+      
+    } catch (error) {
+      console.error('Error checking usage directly:', error)
+      // If usage check fails, allow simulation to proceed (fail-safe)
+      console.log('Usage check failed, allowing simulation to proceed')
     }
-    
-    const usageData = await usageResponse.json()
-    const simulationUsage = usageData.usage.find((u: any) => u.feature === 'simulations')
-    
-    if (!simulationUsage) {
-      throw new Error('Simulation usage not found')
-    }
-    
-    // Check if user can run simulation
-    if (simulationUsage.limit !== -1 && simulationUsage.current >= simulationUsage.limit) {
-      return NextResponse.json({ 
-        error: 'Simulation limit reached',
-        details: {
-          message: 'You have reached your daily simulation limit. Upgrade to Pro for unlimited simulations!',
-          current: simulationUsage.current,
-          limit: simulationUsage.limit,
-          remaining: 0,
-          resetDate: simulationUsage.resetDate
-        }
-      }, { status: 429 })
-    }
-    
-    console.log('Usage check for user:', userId, {
-      current: simulationUsage.current,
-      limit: simulationUsage.limit,
-      remaining: simulationUsage.remaining
-    })
 
     // Forward the request to your backend simulation endpoint
     const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') + '/simulate-race'
@@ -65,9 +94,10 @@ export async function POST(request: NextRequest) {
     
     // Check if backend URL is valid
     if (!backendUrl || backendUrl.includes('your-backend-url.com') || backendUrl.includes('your-api-gateway-url')) {
+      console.error('Invalid backend URL:', backendUrl)
       return NextResponse.json({ 
         error: 'Backend not configured',
-        details: 'NEXT_PUBLIC_API_URL is not set correctly. Please configure your backend URL.'
+        details: `NEXT_PUBLIC_API_URL is not set correctly. Current value: ${process.env.NEXT_PUBLIC_API_URL || 'NOT_SET'}. Please configure your backend URL.`
       }, { status: 500 })
     }
     
@@ -100,9 +130,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ...data,
       usage: {
-        current: simulationUsage.current + 1,
-        limit: simulationUsage.limit,
-        remaining: simulationUsage.remaining - 1
+        current: currentUsage + 1,
+        limit: limit,
+        remaining: Math.max(0, limit - (currentUsage + 1))
       }
     })
   } catch (error) {

@@ -88,13 +88,23 @@ const getResetDate = (feature: string): Date => {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Usage API GET request received')
+    
     const session = await getServerSession(authOptions)
+    console.log('Session data:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email
+    })
     
     if (!session?.user?.id) {
+      console.log('No valid session found')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = session.user.id
+    console.log('Processing usage request for userId:', userId)
     
     // Validate userId
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
