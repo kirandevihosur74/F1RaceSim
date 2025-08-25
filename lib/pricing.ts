@@ -45,7 +45,7 @@ export const pricingPlans: PricingPlan[] = [
     name: 'Pro',
     price: 9.99,
     description: 'Advanced features for enthusiasts',
-    cta: 'Upgrade to Pro',
+    cta: 'Join Waitlist',
     popular: true,
     limits: {
       simulationsPerDay: -1, // Unlimited
@@ -67,7 +67,7 @@ export const pricingPlans: PricingPlan[] = [
     name: 'Business',
     price: 29.99,
     description: 'Enterprise features for teams',
-    cta: 'Upgrade to Business',
+    cta: 'Join Waitlist',
     limits: {
       simulationsPerDay: -1, // Unlimited
       strategies: -1, // Unlimited

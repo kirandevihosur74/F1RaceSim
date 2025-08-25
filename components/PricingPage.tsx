@@ -16,12 +16,18 @@ const PricingPage = () => {
 
   const handleUpgrade = async (planId: string) => {
     if (!session?.user) {
-      showErrorToast('Please sign in to upgrade your plan')
+      showErrorToast('Please sign in to join the waitlist')
       return
     }
 
     if (planId === 'free') {
       showErrorToast('You are already on the free plan')
+      return
+    }
+
+    // Handle waitlist plans
+    if (planId === 'pro' || planId === 'business') {
+      showSuccessToast('You have been added to the waitlist! We will notify you when these plans are available.')
       return
     }
 
@@ -38,6 +44,11 @@ const PricingPage = () => {
 
   const getPlanPrice = (plan: PricingPlan) => {
     if (plan.price === 0) return 'Free'
+    
+    // For Pro and Business plans, show "Join Waitlist" instead of price
+    if (plan.id === 'pro' || plan.id === 'business') {
+      return 'Join Waitlist'
+    }
     
     if (billingCycle === 'yearly') {
       const yearlyPrice = Math.round(plan.price * 12 * 0.8) // 20% discount for yearly
@@ -97,7 +108,8 @@ const PricingPage = () => {
           </div>
         )}
 
-        {getSavingsBadge(plan)}
+        {/* Only show savings badge for plans that aren't waitlist */}
+        {plan.price > 0 && (plan.id !== 'pro' && plan.id !== 'business') && getSavingsBadge(plan)}
 
         <div className="text-center mb-6">
           <div className="text-center mb-2">
@@ -125,6 +137,8 @@ const PricingPage = () => {
           className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
             isCurrentPlan
               ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 cursor-not-allowed'
+              : plan.id === 'pro' || plan.id === 'business'
+              ? 'bg-purple-500 hover:bg-purple-600 text-white'
               : plan.popular
               ? 'bg-blue-500 hover:bg-blue-600 text-white'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100'
@@ -137,6 +151,10 @@ const PricingPage = () => {
             </>
           ) : isCurrentPlan ? (
             'Current Plan'
+          ) : plan.id === 'pro' || plan.id === 'business' ? (
+            <>
+              <span>Join Waitlist</span>
+            </>
           ) : (
             <>
               <CreditCard className="w-4 h-4" />
