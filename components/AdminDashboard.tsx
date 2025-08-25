@@ -40,6 +40,9 @@ interface UsageStats {
   freeUsers: number
   proUsers: number
   businessUsers: number
+  waitlistUsers: number
+  waitlistProUsers: number
+  waitlistBusinessUsers: number
   totalSimulations: number
   totalAIRecommendations: number
   totalStrategies: number
@@ -61,6 +64,9 @@ const AdminDashboard = () => {
     freeUsers: 0,
     proUsers: 0,
     businessUsers: 0,
+    waitlistUsers: 0,
+    waitlistProUsers: 0,
+    waitlistBusinessUsers: 0,
     totalSimulations: 0,
     totalAIRecommendations: 0,
     totalStrategies: 0
@@ -164,7 +170,22 @@ const AdminDashboard = () => {
       case 'free': return 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300'
       case 'pro': return 'text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-300'
       case 'business': return 'text-orange-600 bg-orange-100 dark:bg-orange-900 dark:text-orange-300'
+      case 'waitlist_pro': return 'text-purple-600 bg-purple-50 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700'
+      case 'waitlist_business': return 'text-orange-600 bg-orange-50 dark:bg-orange-900/50 dark:text-orange-300 border border-orange-200 dark:border-orange-700'
+      case 'waitlist': return 'text-gray-600 bg-gray-50 dark:bg-gray-700/50 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
       default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300'
+    }
+  }
+
+  const formatPlanName = (plan: string) => {
+    switch (plan) {
+      case 'free': return 'Free'
+      case 'pro': return 'Pro'
+      case 'business': return 'Business'
+      case 'waitlist_pro': return 'Waitlist Pro'
+      case 'waitlist_business': return 'Waitlist Business'
+      case 'waitlist': return 'Waitlist'
+      default: return plan.charAt(0).toUpperCase() + plan.slice(1)
     }
   }
 
@@ -258,7 +279,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -296,6 +317,19 @@ const AdminDashboard = () => {
               <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalAIRecommendations}</p>
             </div>
             <TrendingUp className="w-8 h-8 text-orange-600" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Waitlist Users</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.waitlistUsers}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Pro: {stats.waitlistProUsers} | Business: {stats.waitlistBusinessUsers}
+              </p>
+            </div>
+            <Clock className="w-8 h-8 text-yellow-600" />
           </div>
         </div>
       </div>
@@ -365,6 +399,9 @@ const AdminDashboard = () => {
               <option value="free">Free</option>
               <option value="pro">Pro</option>
               <option value="business">Business</option>
+              <option value="waitlist">All Waitlist</option>
+              <option value="waitlist_pro">Waitlist Pro</option>
+              <option value="waitlist_business">Waitlist Business</option>
             </select>
             <select
               value={`${sortBy}-${sortOrder}`}
@@ -425,7 +462,7 @@ const AdminDashboard = () => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPlanColor(user.plan)}`}>
-                        {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
+                        {formatPlanName(user.plan)}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">

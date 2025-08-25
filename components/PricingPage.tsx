@@ -27,7 +27,26 @@ const PricingPage = () => {
 
     // Handle waitlist plans
     if (planId === 'pro' || planId === 'business') {
-      showSuccessToast('You have been added to the waitlist! We will notify you when these plans are available.')
+      try {
+        const response = await fetch('/api/users/waitlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ plan: planId }),
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          showSuccessToast(result.message || 'You have been added to the waitlist! We will notify you when these plans are available.')
+        } else {
+          const error = await response.json()
+          showErrorToast(error.error || 'Failed to join waitlist. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error joining waitlist:', error)
+        showErrorToast('Failed to join waitlist. Please try again.')
+      }
       return
     }
 

@@ -135,6 +135,13 @@ export async function GET(request: NextRequest) {
           let plan = 'free'
           if (profile.plan || profile.subscription_plan) {
             plan = profile.plan || profile.subscription_plan
+          } else if (profile.waitlist_status) {
+            // Check if user is on waitlist for specific plans
+            if (profile.waitlist_status === 'pro' || profile.waitlist_status === 'business') {
+              plan = `waitlist_${profile.waitlist_status}`
+            } else {
+              plan = 'waitlist'
+            }
           } else if (totalStrategies > 10 || totalSimulations > 20) {
             plan = 'pro'
           } else if (totalStrategies > 5 || totalSimulations > 10) {
@@ -307,6 +314,9 @@ export async function GET(request: NextRequest) {
       freeUsers: users.filter(u => u.plan === 'free').length,
       proUsers: users.filter(u => u.plan === 'pro').length,
       businessUsers: users.filter(u => u.plan === 'business').length,
+      waitlistUsers: users.filter(u => u.plan.startsWith('waitlist')).length,
+      waitlistProUsers: users.filter(u => u.plan === 'waitlist_pro').length,
+      waitlistBusinessUsers: users.filter(u => u.plan === 'waitlist_business').length,
       totalSimulations: users.reduce((sum, u) => sum + u.totalSimulations, 0),
       totalAIRecommendations: users.reduce((sum, u) => sum + u.totalAIRecommendations, 0),
       totalStrategies: users.reduce((sum, u) => sum + u.totalStrategies, 0)
