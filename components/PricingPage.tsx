@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Check, X, CreditCard } from 'lucide-react'
 import { pricingPlans, PricingPlan, PricingFeature } from '../lib/pricing'
 import { useSession } from 'next-auth/react'
@@ -13,6 +13,26 @@ const PricingPage = () => {
   const { createCheckoutSession, loading } = useStripe()
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null)
+  const [waitlistStatus, setWaitlistStatus] = useState<{ onWaitlist: boolean; plan: string | null }>({ onWaitlist: false, plan: null })
+
+  // Check user's waitlist status when component mounts
+  useEffect(() => {
+    const checkWaitlistStatus = async () => {
+      if (session?.user) {
+        try {
+          const response = await fetch('/api/users/waitlist?action=check')
+          if (response.ok) {
+            const data = await response.json()
+            setWaitlistStatus(data)
+          }
+        } catch (error) {
+          console.error('Error checking waitlist status:', error)
+        }
+      }
+    }
+
+    checkWaitlistStatus()
+  }, [session?.user])
 
   const handleUpgrade = async (planId: string) => {
     if (!session?.user) {
@@ -39,6 +59,8 @@ const PricingPage = () => {
         if (response.ok) {
           const result = await response.json()
           showSuccessToast(result.message || 'You have been added to the waitlist! We will notify you when these plans are available.')
+          // Update local waitlist status
+          setWaitlistStatus({ onWaitlist: true, plan: planId })
         } else {
           const error = await response.json()
           showErrorToast(error.error || 'Failed to join waitlist. Please try again.')
@@ -201,6 +223,15 @@ const PricingPage = () => {
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Unlock unlimited simulations, advanced analytics, and AI-powered strategy recommendations
           </p>
+          
+          {/* Waitlist Status */}
+          {session?.user && waitlistStatus.onWaitlist && (
+            <div className="mt-6 inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg">
+              <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
+                🕐 You're on the waitlist for {waitlistStatus.plan === 'pro' ? 'Pro' : 'Business'} plan
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Billing Cycle Toggle */}
