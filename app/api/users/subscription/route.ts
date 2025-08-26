@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       status: 'active',
       currentPeriodStart: new Date().toISOString(),
       currentPeriodEnd: null,
-      stripeSubscriptionId: null
+      subscriptionId: null
     }
 
     return NextResponse.json({ subscription })
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       status: 'active',
       currentPeriodStart: new Date().toISOString(),
       currentPeriodEnd: null,
-      stripeSubscriptionId: null
+      subscriptionId: null
     }
 
     return NextResponse.json({ subscription })

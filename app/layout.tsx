@@ -3,9 +3,11 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
+
 import Providers from '../components/Providers'
-import ErrorBoundary from '../components/ErrorBoundary'
+import GlobalErrorBoundary from '../components/GlobalErrorBoundary'
 import GlobalErrorHandler from '../components/GlobalErrorHandler'
+import HydrationErrorBoundary from '../components/HydrationErrorBoundary'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -22,13 +24,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
+
       <body className="font-sans antialiased">
         <Providers>
-          <ErrorBoundary>
-            <GlobalErrorHandler />
-            <Toaster position="top-center" />
-            {children}
-          </ErrorBoundary>
+          <GlobalErrorBoundary>
+            <HydrationErrorBoundary>
+              <GlobalErrorHandler />
+              <Toaster position="top-center" />
+              {children}
+            </HydrationErrorBoundary>
+          </GlobalErrorBoundary>
         </Providers>
       </body>
     </html>

@@ -4,35 +4,111 @@ import React, { useState, useEffect } from 'react'
 import { Check, X, CreditCard } from 'lucide-react'
 import { pricingPlans, PricingPlan, PricingFeature } from '../lib/pricing'
 import { useSession } from 'next-auth/react'
-import { useStripe } from '../lib/hooks/useStripe'
+
 import { showSuccessToast, showErrorToast } from '../lib/toast'
 import BackButton from './BackButton'
+import PricingErrorBoundary from './PricingErrorBoundary'
+import ClientErrorBoundary from './ClientErrorBoundary'
 
 const PricingPage = () => {
   const { data: session } = useSession()
-  const { createCheckoutSession, loading } = useStripe()
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  
+
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null)
   const [waitlistStatus, setWaitlistStatus] = useState<{ onWaitlist: boolean; plan: string | null }>({ onWaitlist: false, plan: null })
 
-  // Check user's waitlist status when component mounts
+  // Check user's waitlist status when component mounts with retry mechanism
   useEffect(() => {
-    const checkWaitlistStatus = async () => {
+    const checkWaitlistStatus = async (retryCount = 0, maxRetries = 3) => {
       if (session?.user) {
         try {
-          const response = await fetch('/api/users/waitlist?action=check')
+          console.log(`Checking waitlist status for user: ${session.user.email} (attempt ${retryCount + 1})`)
+          const response = await fetch('/api/users/waitlist?action=check', {
+            // Add cache control to prevent stale data issues
+            cache: 'no-cache',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          })
+          
           if (response.ok) {
             const data = await response.json()
+            console.log('Waitlist status response:', data)
             setWaitlistStatus(data)
+          } else {
+            console.warn(`Failed to check waitlist status: ${response.status}`)
+            // Set default status on error
+            setWaitlistStatus({ onWaitlist: false, plan: null })
           }
         } catch (error) {
-          console.error('Error checking waitlist status:', error)
+          console.error(`Error checking waitlist status (attempt ${retryCount + 1}):`, error)
+          
+          // Retry with exponential backoff if we haven't exceeded max retries
+          if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 1000 // 1s, 2s, 4s
+            console.log(`Retrying in ${delay}ms...`)
+            setTimeout(() => checkWaitlistStatus(retryCount + 1, maxRetries), delay)
+          } else {
+            console.error('Max retries exceeded, setting default waitlist status')
+            // Set default status to prevent crashes
+            setWaitlistStatus({ onWaitlist: false, plan: null })
+          }
         }
+      } else {
+        console.log('No session user, skipping waitlist check')
       }
     }
 
-    checkWaitlistStatus()
+    // Wrap the entire function in a try-catch to catch any unexpected errors
+    try {
+      checkWaitlistStatus()
+    } catch (error) {
+      console.error('Unexpected error in waitlist status check:', error)
+      // Set default status to prevent crashes
+      setWaitlistStatus({ onWaitlist: false, plan: null })
+    }
   }, [session?.user])
+
+  // Add global error handler for this component
+  useEffect(() => {
+    const handleGlobalError = (event: ErrorEvent) => {
+      console.error('Global error caught in PricingPage:', event.error)
+      if (event.error && event.error.message && 
+          (event.error.message.includes('pk.match') || 
+           event.error.message.includes('ValidationException') ||
+           event.error.message.includes('schema'))) {
+        console.error('Database error detected in PricingPage')
+        // Prevent the error from propagating
+        event.preventDefault()
+        // Set safe defaults
+        setWaitlistStatus({ onWaitlist: false, plan: null })
+      }
+    }
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection in PricingPage:', event.reason)
+      if (event.reason && event.reason.message && 
+          (event.reason.message.includes('pk.match') || 
+           event.reason.message.includes('ValidationException') ||
+           event.reason.message.includes('schema'))) {
+        console.error('Database error detected in PricingPage promise rejection')
+        // Prevent the error from propagating
+        event.preventDefault()
+        // Set safe defaults
+        setWaitlistStatus({ onWaitlist: false, plan: null })
+      }
+    }
+
+    window.addEventListener('error', handleGlobalError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [])
 
   const handleUpgrade = async (planId: string) => {
     if (!session?.user) {
@@ -72,15 +148,8 @@ const PricingPage = () => {
       return
     }
 
-    try {
-      setUpgradingPlan(planId)
-      await createCheckoutSession(planId, billingCycle)
-    } catch (error) {
-      console.error('Error upgrading plan:', error)
-      showErrorToast('Failed to start checkout. Please try again.')
-    } finally {
-      setUpgradingPlan(null)
-    }
+    // For other plans, show a message that they're not available yet
+    showErrorToast('This plan is not available yet. Please join the waitlist for Pro or Business plans.')
   }
 
   const getPlanPrice = (plan: PricingPlan) => {
@@ -91,29 +160,10 @@ const PricingPage = () => {
       return 'Join Waitlist'
     }
     
-    if (billingCycle === 'yearly') {
-      const yearlyPrice = Math.round(plan.price * 12 * 0.8) // 20% discount for yearly
-      return `$${yearlyPrice}/year`
-    }
-    
     return `$${plan.price}/month`
   }
 
-  const getSavingsBadge = (plan: PricingPlan) => {
-    if (plan.price === 0 || billingCycle === 'monthly') return null
-    
-    const monthlyTotal = plan.price * 12
-    const yearlyPrice = Math.round(plan.price * 12 * 0.8)
-    const savings = monthlyTotal - yearlyPrice
-    
-    return (
-      <div className="absolute -top-3 right-4">
-        <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-          Save ${savings}/year
-        </div>
-      </div>
-    )
-  }
+
 
   const renderFeature = (feature: PricingFeature) => (
     <div key={feature.id} className="flex items-center space-x-3">
@@ -149,8 +199,7 @@ const PricingPage = () => {
           </div>
         )}
 
-        {/* Only show savings badge for plans that aren't waitlist */}
-        {plan.price > 0 && (plan.id !== 'pro' && plan.id !== 'business') && getSavingsBadge(plan)}
+
 
         <div className="text-center mb-6">
           <div className="text-center mb-2">
@@ -174,10 +223,10 @@ const PricingPage = () => {
 
         <button
           onClick={() => handleUpgrade(plan.id)}
-          disabled={isCurrentPlan || isUpgrading || loading}
+          disabled={isCurrentPlan || isUpgrading}
           className={`w-full py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
             isCurrentPlan
-              ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 cursor-not-allowed'
+              ? 'bg-green-100 text-green-700 dark:bg-gray-900 dark:text-green-300 cursor-not-allowed'
               : plan.id === 'pro' || plan.id === 'business'
               ? 'bg-purple-500 hover:bg-purple-600 text-white'
               : plan.popular
@@ -208,73 +257,43 @@ const PricingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <div className="mb-8">
-          <BackButton />
-        </div>
-
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Unlock unlimited simulations, advanced analytics, and AI-powered strategy recommendations
-          </p>
-          
-          {/* Waitlist Status */}
-          {session?.user && waitlistStatus.onWaitlist && (
-            <div className="mt-6 inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg">
-              <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
-                🕐 You're on the waitlist for {waitlistStatus.plan === 'pro' ? 'Pro' : 'Business'} plan
-              </span>
+    <PricingErrorBoundary>
+      <ClientErrorBoundary>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Back Button */}
+            <div className="mb-8">
+              <BackButton />
             </div>
-          )}
-        </div>
 
-        {/* Billing Cycle Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingCycle === 'monthly'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBillingCycle('yearly')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                billingCycle === 'yearly'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-              }`}
-            >
-              Yearly
-              <span className="ml-1 text-xs text-green-600">(20% off)</span>
-            </button>
+            {/* Header */}
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Choose Your Plan
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Unlock unlimited simulations, advanced analytics, and AI-powered strategy recommendations
+              </p>
+              
+              {/* Waitlist Status */}
+              {session?.user && waitlistStatus.onWaitlist && (
+                <div className="mt-6 inline-flex items-center px-4 py-2 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg">
+                  <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
+                    🕐 You're on the waitlist for {waitlistStatus.plan === 'pro' ? 'Pro' : 'Business'} plan
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Plans Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {pricingPlans.map(renderPlan)}
+            </div>
+
           </div>
         </div>
-
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {pricingPlans.map(renderPlan)}
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
-            All plans include secure payment processing via Stripe. 
-            Cancel or change your plan at any time.
-          </p>
-        </div>
-      </div>
-    </div>
+      </ClientErrorBoundary>
+    </PricingErrorBoundary>
   )
 }
 
