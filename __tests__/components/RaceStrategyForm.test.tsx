@@ -1,6 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import '@testing-library/jest-dom'
 import { SessionProvider } from 'next-auth/react'
 import RaceStrategyForm from '../../components/RaceStrategyForm'
 import { useSimulationStore } from '../../store/simulationStore'
