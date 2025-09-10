@@ -220,6 +220,7 @@ const UsageDisplay = () => {
         </div>
       </div>
     </div>
+    </div>
   )
 }
 

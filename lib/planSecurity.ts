@@ -3,6 +3,7 @@ import { authOptions } from './auth'
 import { getCurrentUserPlan } from './pricing'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+import { NextRequest } from 'next/server'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'

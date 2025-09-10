@@ -66,32 +66,6 @@ export async function POST(request: NextRequest) {
     
     const data = await response.json()
     
-    // Increment usage after successful recommendation
-    try {
-      const { PutCommand } = await import('@aws-sdk/lib-dynamodb')
-      const putCommand = new PutCommand({
-        TableName: TABLES.STRATEGY_METADATA,
-        Item: {
-          strategy_id: `USER_${userId}_USAGE_ai_recommendations_${currentDate}`,
-          user_id: userId,
-          type: 'USER_USAGE',
-          feature: 'ai_recommendations',
-          current_count: currentUsage + 1,
-          limit,
-          date: currentDate,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      })
-      
-      await dynamoDb.send(putCommand)
-      console.log('AI Recommendation usage incremented for user:', userId)
-      
-    } catch (error) {
-      console.error('Error incrementing AI recommendation usage:', error)
-      // Don't fail the request if usage tracking fails
-    }
-    
     // Preserve the status code from the backend
     return NextResponse.json(data, { status: response.status })
   } catch (error) {

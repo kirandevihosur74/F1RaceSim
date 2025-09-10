@@ -76,8 +76,8 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
       const store = useSimulationStore.getState()
       
       const pdfData = {
-        totalTime,
-        strategyAnalysis,
+        totalTime: totalTime ?? undefined,
+        strategyAnalysis: strategyAnalysis ?? undefined,
         simulationResults: store.simulationResults,
         strategy: store.strategies.find(s => s.id === store.activeStrategyId) || store.strategies[0],
         track: store.availableTracks.find(t => t.id === store.selectedTrack),
