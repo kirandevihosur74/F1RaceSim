@@ -37,7 +37,11 @@ const getDocClient = () => {
   return docClient
 }
 
+// Multi-table configuration
 const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
+const USER_SUBSCRIPTIONS_TABLE = process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev'
+const USER_USAGE_TABLE = process.env.USER_USAGE_TABLE || 'f1-user-usage-dev'
+const USER_ACTIONS_LOG_TABLE = process.env.USER_ACTIONS_LOG_TABLE || 'f1-user-actions-log-dev'
 
 export interface PlanValidationResult {
   allowed: boolean
@@ -62,15 +66,40 @@ export interface RateLimitResult {
  */
 export async function getUserPlan(userId: string): Promise<string> {
   try {
-    const queryCommand = new GetCommand({
+    // First try to get from subscription table
+    const { QueryCommand } = await import('@aws-sdk/lib-dynamodb')
+    
+    const queryCommand = new QueryCommand({
+      TableName: USER_SUBSCRIPTIONS_TABLE,
+      KeyConditionExpression: 'user_id = :userId',
+      FilterExpression: '#status = :status',
+      ExpressionAttributeNames: {
+        '#status': 'status'
+      },
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':status': 'active'
+      },
+      ScanIndexForward: false, // Get most recent first
+      Limit: 1
+    })
+    
+    const result = await getDocClient().send(queryCommand)
+    
+    if (result.Items && result.Items.length > 0) {
+      return result.Items[0].plan_id
+    }
+    
+    // Fallback to metadata table for backward compatibility
+    const getCommand = new GetCommand({
       TableName: METADATA_TABLE,
       Key: {
         strategy_id: `USER_${userId}_PROFILE`
       }
     })
     
-    const result = await getDocClient().send(queryCommand)
-    const userProfile = result.Item
+    const fallbackResult = await getDocClient().send(getCommand)
+    const userProfile = fallbackResult.Item
     
     // Check for waitlist status or actual plan
     if (userProfile?.waitlist_status) {
@@ -95,15 +124,18 @@ export async function getUserPlan(userId: string): Promise<string> {
 export async function getCurrentUsage(userId: string, feature: string): Promise<number> {
   try {
     const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-    const usageKey = `USER_${userId}_USAGE_${feature}_${currentDate}`
+    const featureDateKey = `${feature}_${currentDate}`
     
     const getCommand = new GetCommand({
-      TableName: METADATA_TABLE,
-      Key: { strategy_id: usageKey }
+      TableName: USER_USAGE_TABLE,
+      Key: { 
+        user_id: userId,
+        feature_date_key: featureDateKey
+      }
     })
     
     const result = await getDocClient().send(getCommand)
-    return result.Item?.current_count || 0
+    return result.Item?.usage_count || 0
   } catch (error) {
     console.error('Error getting current usage:', error)
     return 0
@@ -116,19 +148,24 @@ export async function getCurrentUsage(userId: string, feature: string): Promise<
 export async function incrementUsage(userId: string, feature: string): Promise<void> {
   try {
     const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-    const usageKey = `USER_${userId}_USAGE_${feature}_${currentDate}`
+    const featureDateKey = `${feature}_${currentDate}`
     
     const currentUsage = await getCurrentUsage(userId, feature)
     
+    // Get user plan to determine limit
+    const userPlan = await getUserPlan(userId)
+    const plan = getCurrentUserPlan(userPlan)
+    const limit = getFeatureLimit(userPlan, feature)
+    
     const putCommand = new PutCommand({
-      TableName: METADATA_TABLE,
+      TableName: USER_USAGE_TABLE,
       Item: {
-        strategy_id: usageKey,
-        type: 'USAGE_TRACKING',
         user_id: userId,
-        feature: feature,
-        current_count: currentUsage + 1,
-        date: currentDate,
+        feature_date_key: featureDateKey,
+        feature_name: feature,
+        usage_count: currentUsage + 1,
+        reset_date: getResetDate(feature).toISOString().split('T')[0],
+        limit_value: limit,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
@@ -407,21 +444,49 @@ export async function logSecurityEvent(
   details: any
 ): Promise<void> {
   try {
+    const timestamp = new Date().toISOString()
     const logCommand = new PutCommand({
-      TableName: METADATA_TABLE,
+      TableName: USER_ACTIONS_LOG_TABLE,
       Item: {
-        strategy_id: `SECURITY_LOG_${Date.now()}_${userId}`,
-        type: 'SECURITY_EVENT',
         user_id: userId,
-        event: event,
-        details: JSON.stringify(details),
-        timestamp: new Date().toISOString(),
-        created_at: new Date().toISOString()
+        timestamp: timestamp,
+        action_type: event,
+        action_details: details,
+        plan_id: await getUserPlan(userId),
+        created_at: timestamp
       }
     })
     
     await getDocClient().send(logCommand)
   } catch (error) {
     console.error('Error logging security event:', error)
+  }
+}
+
+/**
+ * Log general user actions for analytics
+ */
+export async function logUserAction(
+  userId: string,
+  actionType: string,
+  actionDetails: any = {}
+): Promise<void> {
+  try {
+    const timestamp = new Date().toISOString()
+    const logCommand = new PutCommand({
+      TableName: USER_ACTIONS_LOG_TABLE,
+      Item: {
+        user_id: userId,
+        timestamp: timestamp,
+        action_type: actionType,
+        action_details: actionDetails,
+        plan_id: await getUserPlan(userId),
+        created_at: timestamp
+      }
+    })
+    
+    await getDocClient().send(logCommand)
+  } catch (error) {
+    console.error('Error logging user action:', error)
   }
 }

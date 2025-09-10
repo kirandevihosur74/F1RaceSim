@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateApiAccess, incrementUsage, logSecurityEvent } from '../../../lib/planSecurity'
+import { validateApiAccess, incrementUsage, logSecurityEvent, logUserAction } from '../../../lib/planSecurity'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
@@ -65,6 +65,17 @@ export async function POST(request: NextRequest) {
     }
     
     const data = await response.json()
+    
+    // Log successful AI recommendation action
+    try {
+      await logUserAction(userId, 'AI_RECOMMENDATION_COMPLETED', {
+        scenario: body.scenario,
+        recommendation_type: data.type || 'strategy_recommendation'
+      })
+    } catch (error) {
+      console.error('Error logging AI recommendation action:', error)
+      // Continue even if logging fails
+    }
     
     // Preserve the status code from the backend
     return NextResponse.json(data, { status: response.status })

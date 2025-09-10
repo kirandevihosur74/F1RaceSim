@@ -38,23 +38,20 @@ const getDocClient = () => {
   return docClient
 }
 
-// Use the existing table from your infrastructure
-const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
+// Use the dedicated usage tracking table
+const USER_USAGE_TABLE = process.env.USER_USAGE_TABLE || 'f1-user-usage-dev'
 
 // Helper functions for usage management
-const getUsageKey = (userId: string, feature: string, date: string) => {
+const getFeatureDateKey = (feature: string, date: string) => {
   // Validate inputs
-  if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-    throw new Error('Invalid userId provided to getUsageKey')
-  }
   if (!feature || typeof feature !== 'string' || feature.trim().length === 0) {
-    throw new Error('Invalid feature provided to getUsageKey')
+    throw new Error('Invalid feature provided to getFeatureDateKey')
   }
   if (!date || typeof date !== 'string' || date.trim().length === 0) {
-    throw new Error('Invalid date provided to getUsageKey')
+    throw new Error('Invalid date provided to getFeatureDateKey')
   }
   
-  return `USER_${userId.trim()}_USAGE_${feature.trim()}_${date.trim()}`
+  return `${feature.trim()}_${date.trim()}`
 }
 
 const getCurrentDate = () => {
@@ -130,22 +127,25 @@ export async function GET(request: NextRequest) {
     for (const feature of features) {
       try {
         // Query usage for this feature and date
-        let usageKey: string
+        let featureDateKey: string
         try {
-          usageKey = getUsageKey(userId, feature, currentDate)
+          featureDateKey = getFeatureDateKey(feature, currentDate)
         } catch (keyError) {
-          console.error(`Error generating usage key for ${feature}:`, keyError)
+          console.error(`Error generating feature date key for ${feature}:`, keyError)
           // Skip this feature if we can't generate a valid key
           continue
         }
         
         const getCommand = new GetCommand({
-          TableName: METADATA_TABLE,
-          Key: { strategy_id: usageKey }
+          TableName: USER_USAGE_TABLE,
+          Key: { 
+            user_id: userId,
+            feature_date_key: featureDateKey
+          }
         })
         
         const result = await getDocClient().send(getCommand)
-        const current = result.Item?.current_count || 0
+        const current = result.Item?.usage_count || 0
         const limit = getFeatureLimit(plan, feature)
         const resetDate = getResetDate(feature)
 
@@ -202,24 +202,27 @@ export async function POST(request: NextRequest) {
     const limit = getFeatureLimit(plan, feature)
     const currentDate = getCurrentDate()
     
-    let usageKey: string
+    let featureDateKey: string
     try {
-      usageKey = getUsageKey(userId, feature, currentDate)
+      featureDateKey = getFeatureDateKey(feature, currentDate)
     } catch (keyError) {
-      console.error('Error generating usage key:', keyError)
-      return NextResponse.json({ error: 'Invalid usage key generation' }, { status: 400 })
+      console.error('Error generating feature date key:', keyError)
+      return NextResponse.json({ error: 'Invalid feature date key generation' }, { status: 400 })
     }
 
     // Get current usage
     let currentUsage = 0
     try {
       const getCommand = new GetCommand({
-        TableName: METADATA_TABLE,
-        Key: { strategy_id: usageKey }
+        TableName: USER_USAGE_TABLE,
+        Key: { 
+          user_id: userId,
+          feature_date_key: featureDateKey
+        }
       })
       
       const result = await getDocClient().send(getCommand)
-      currentUsage = result.Item?.current_count || 0
+      currentUsage = result.Item?.usage_count || 0
     } catch (error) {
       // No existing usage record, start at 0
       currentUsage = 0
@@ -246,15 +249,14 @@ export async function POST(request: NextRequest) {
     // Increment usage
     const newUsage = currentUsage + 1
     const putCommand = new PutCommand({
-      TableName: METADATA_TABLE,
+      TableName: USER_USAGE_TABLE,
       Item: {
-        strategy_id: usageKey,
         user_id: userId,
-        type: 'USER_USAGE',
-        feature,
-        current_count: newUsage,
-        limit,
-        date: currentDate,
+        feature_date_key: featureDateKey,
+        feature_name: feature,
+        usage_count: newUsage,
+        reset_date: getResetDate(feature).toISOString().split('T')[0],
+        limit_value: limit,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }

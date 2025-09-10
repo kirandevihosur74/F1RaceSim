@@ -1,8 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateApiAccess, incrementUsage, logSecurityEvent } from '../../../lib/planSecurity'
+import { validateApiAccess, incrementUsage, logSecurityEvent, logUserAction } from '../../../lib/planSecurity'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
+
+// Initialize DynamoDB client
+const createDynamoDBClient = () => {
+  const region = process.env.AWS_REGION || 'us-west-1'
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('AWS credentials missing in simulation API')
+    throw new Error('AWS credentials not configured for simulation storage')
+  }
+
+  return new DynamoDBClient({
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  })
+}
+
+let docClient: DynamoDBDocumentClient | null = null
+
+const getDocClient = () => {
+  if (!docClient) {
+    const client = createDynamoDBClient()
+    docClient = DynamoDBDocumentClient.from(client)
+  }
+  return docClient
+}
+
+// Use the dedicated simulation results table
+const SIMULATION_RESULTS_TABLE = process.env.SIMULATION_RESULTS_TABLE || 'f1-simulation-results'
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,7 +109,48 @@ export async function POST(request: NextRequest) {
     
     const data = await simResponse.json()
     
+    console.log('Backend simulation response:', JSON.stringify(data, null, 2))
     console.log('Simulation completed, usage incremented for user:', userId)
+    
+    // Store simulation results in dedicated table
+    try {
+      const simulationId = `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const now = new Date().toISOString()
+      
+      const simulationResult = {
+        simulation_id: simulationId,
+        user_id: userId,
+        track_id: body.track_id || 'unknown',
+        strategy_data: body.strategy || {},
+        weather: body.weather || 'dry',
+        simulation_type: body.simulation_type || 'single_car',
+        results: data.simulation || [], // Fixed: backend returns 'simulation' not 'results'
+        total_time: data.total_time || null,
+        strategy_analysis: data.strategy_analysis || null,
+        created_at: now,
+        updated_at: now
+      }
+      
+      const putCommand = new PutCommand({
+        TableName: SIMULATION_RESULTS_TABLE,
+        Item: simulationResult
+      })
+      
+      await getDocClient().send(putCommand)
+      console.log('Simulation results stored in database:', simulationId)
+      
+      // Log successful simulation action
+      await logUserAction(userId, 'SIMULATION_COMPLETED', {
+        simulation_id: simulationId,
+        track_id: body.track_id,
+        strategy_name: body.strategy?.name,
+        weather: body.weather,
+        total_time: data.total_time
+      })
+    } catch (error) {
+      console.error('Error storing simulation results:', error)
+      // Continue even if storage fails
+    }
     
     // Get updated usage information
     const { getCurrentUsage, getFeatureLimit } = await import('../../../lib/planSecurity')

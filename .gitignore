@@ -261,3 +261,4 @@ n8n-data/
 
 # Local development
 .local/ 
+.vercel
