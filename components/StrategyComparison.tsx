@@ -165,18 +165,20 @@ const StrategyComparison = () => {
           </div>
         )}
         
-        <button
-          onClick={handleCompareStrategies}
-          disabled={isLoading || strategies.length < 2}
-          className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50"
-        >
-          <BarChart3 className="w-5 h-5" />
-          <span>
-            {isLoading ? 'Comparing...' : 
-             strategies.length < 2 ? 'Need at least 2 strategies' : 
-             'Compare Strategies'}
-          </span>
-        </button>
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleCompareStrategies}
+            disabled={isLoading || strategies.length < 2}
+            className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50"
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span>
+              {isLoading ? 'Comparing...' : 
+               strategies.length < 2 ? 'Need at least 2 strategies' : 
+               'Compare Strategies'}
+            </span>
+          </button>
+        </div>
         
 
       </div>
@@ -318,21 +320,23 @@ const StrategyComparison = () => {
         </div>
       </div>
 
-      <button
-        onClick={handleCompareStrategies}
-        disabled={isLoading}
-        className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50"
-      >
-        <BarChart3 className="w-5 h-5" />
-        <span>{isLoading ? 'Comparing...' : 'Compare Again'}</span>
-      </button>
+      <div className="flex flex-col items-center space-y-4 mt-6">
+        <button
+          onClick={handleCompareStrategies}
+          disabled={isLoading}
+          className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50"
+        >
+          <BarChart3 className="w-5 h-5" />
+          <span>{isLoading ? 'Comparing...' : 'Compare Again'}</span>
+        </button>
 
-      <button
-        onClick={resetComparisonResults}
-        className="btn-secondary w-full mt-4"
-      >
-        Reset Comparison
-      </button>
+        <button
+          onClick={resetComparisonResults}
+          className="btn-secondary"
+        >
+          Reset Comparison
+        </button>
+      </div>
       
 
     </div>

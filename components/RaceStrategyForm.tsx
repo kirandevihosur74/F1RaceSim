@@ -441,11 +441,19 @@ const RaceStrategyForm: React.FC<RaceStrategyFormProps> = ({ onSimulationComplet
           Race Strategy Configuration
         </h3>
         {currentPlan === 'free' && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                            <span className="text-xs text-gray-500">Lock</span>
-            <span>Free Plan</span>
-            <Link href="/pricing" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-              Upgrade
+          <div className="flex items-center space-x-3 text-sm">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+              <span className="text-xs text-gray-500 dark:text-gray-400">🔒</span>
+              <span className="text-gray-600 dark:text-gray-300">Free Plan</span>
+            </div>
+            <Link 
+              href="/pricing" 
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+            >
+              Upgrade to Pro
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         )}
@@ -474,20 +482,11 @@ const RaceStrategyForm: React.FC<RaceStrategyFormProps> = ({ onSimulationComplet
               </div>
             </div>
             {!canRunSimulation && (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <AlertCircle className="w-4 h-4 text-orange-500" />
                 <span className="text-sm text-orange-700 dark:text-orange-300">
                   Daily limit reached
                 </span>
-                <Link 
-                  href="/pricing" 
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 text-sm"
-                >
-                  Upgrade to Pro
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
               </div>
             )}
           </div>
