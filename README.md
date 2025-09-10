@@ -63,29 +63,6 @@ pip install -r requirements.txt
 cp env.example .env.local
 ```
 
-Add your configuration:
-```bash
-# NextAuth.js Configuration
-NEXTAUTH_SECRET=your-nextauth-secret-here
-NEXTAUTH_URL=http://localhost:3000
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# AWS Configuration
-AWS_REGION=us-west-1
-AWS_ACCESS_KEY_ID=your-aws-access-key-id
-AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
-
-# DynamoDB Configuration
-METADATA_TABLE=f1-strategy-metadata-dev
-
-# API Keys
-F1_API_KEY=your-f1-api-key
-OPENWEATHER_API_KEY=your-openweather-api-key
-```
-
 4. **Google OAuth Setup**
 - Create Google OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/)
 - Add authorized redirect URIs:
@@ -240,12 +217,6 @@ python -m pytest
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Guidelines
-- Follow TypeScript best practices
-- Write tests for new features
-- Update documentation for API changes
-- Use conventional commit messages
-- Ensure all tests pass before submitting
 ---
 
 ## Support
@@ -254,14 +225,3 @@ python -m pytest
 - **Email**: kirandevihosur74@gmail.com
 
 ---
-
-## Acknowledgments
-
-- **Ergast API** - F1 circuit and race data
-- **OpenWeatherMap** - Weather data integration
-- **Google Gemini** - AI strategy recommendations
-- **Formula 1** - For the amazing sport that inspired this project
-
----
-
-**Built with love for F1 fans and strategy enthusiasts**
