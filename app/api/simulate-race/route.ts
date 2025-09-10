@@ -1,89 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../lib/auth'
+import { validateApiAccess, incrementUsage, logSecurityEvent } from '../../../lib/planSecurity'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    // Validate plan access and rate limiting
+    const accessValidation = await validateApiAccess(request, 'simulations', true)
     
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!accessValidation.allowed) {
+      // Log security event for monitoring
+      if (accessValidation.userId) {
+        await logSecurityEvent(accessValidation.userId, 'SIMULATION_ACCESS_DENIED', {
+          reason: accessValidation.message,
+          planId: accessValidation.planId,
+          timestamp: new Date().toISOString()
+        })
+      }
+      
+      return NextResponse.json({ 
+        error: accessValidation.message || 'Access denied',
+        planId: accessValidation.planId,
+        upgradeRequired: accessValidation.statusCode === 403
+      }, { status: accessValidation.statusCode || 403 })
     }
 
-    const userId = session.user.id
-    
-    // Validate userId
-    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
-      console.error('Invalid userId in session:', userId)
-      return NextResponse.json({ error: 'Invalid user session' }, { status: 400 })
-    }
+    const userId = accessValidation.userId!
+    const planId = accessValidation.planId!
     
     const body = await request.json()
     
-    // Check usage before allowing simulation (direct logic instead of internal API call)
-    console.log('Checking usage directly for user:', userId)
+    console.log('Simulation request validated for user:', userId, 'plan:', planId)
     
-    // Declare variables in outer scope
-    let currentUsage = 0
-    let limit = 1 // Default to free plan limit
-    
+    // Increment usage after successful validation
     try {
-      // Import the usage logic directly
-      const { getCurrentUserPlan } = await import('../../../lib/pricing')
-      const { dynamoDb, TABLES } = await import('../../../lib/dynamodb')
-      
-      const plan = getCurrentUserPlan('free')
-      const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-      const usageKey = `USER_${userId}_USAGE_simulations_${currentDate}`
-      
-      // Get current usage from DynamoDB
-      const { GetCommand } = await import('@aws-sdk/lib-dynamodb')
-      const getCommand = new GetCommand({
-        TableName: TABLES.STRATEGY_METADATA,
-        Key: { strategy_id: usageKey }
-      })
-      
-      const result = await dynamoDb.send(getCommand)
-      currentUsage = result.Item?.current_count || 0
-      limit = plan.limits.simulationsPerDay
-      
-      console.log('Usage check result:', {
-        current: currentUsage,
-        limit,
-        remaining: Math.max(0, limit - currentUsage)
-      })
-      
-      // Check if user can run simulation
-      if (limit !== -1 && currentUsage >= limit) {
-        const resetDate = new Date()
-        resetDate.setDate(resetDate.getDate() + 1)
-        resetDate.setHours(0, 0, 0, 0)
-        
-        return NextResponse.json({ 
-          error: 'Simulation limit reached',
-          details: {
-            message: 'You have reached your daily simulation limit. Upgrade to Pro for unlimited simulations!',
-            current: currentUsage,
-            limit,
-            remaining: 0,
-            resetDate: resetDate.toISOString()
-          }
-        }, { status: 429 })
-      }
-      
-      console.log('Usage check passed for user:', userId, {
-        current: currentUsage,
-        limit,
-        remaining: Math.max(0, limit - currentUsage)
-      })
-      
+      await incrementUsage(userId, 'simulations')
+      console.log('Usage incremented for user:', userId)
     } catch (error) {
-      console.error('Error checking usage directly:', error)
-      // If usage check fails, allow simulation to proceed (fail-safe)
-      console.log('Usage check failed, allowing simulation to proceed')
+      console.error('Error incrementing usage:', error)
+      // Continue with simulation even if usage tracking fails
     }
 
     // Forward the request to your backend simulation endpoint
@@ -118,21 +74,19 @@ export async function POST(request: NextRequest) {
     
     const data = await simResponse.json()
     
-    // Increment usage after successful simulation
-    const incrementResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/users/usage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feature: 'simulations', planId: 'free' })
-    })
-    
     console.log('Simulation completed, usage incremented for user:', userId)
+    
+    // Get updated usage information
+    const { getCurrentUsage, getFeatureLimit } = await import('../../../lib/planSecurity')
+    const currentUsage = await getCurrentUsage(userId, 'simulations')
+    const limit = getFeatureLimit(planId, 'simulations')
     
     return NextResponse.json({
       ...data,
       usage: {
-        current: currentUsage + 1,
+        current: currentUsage,
         limit: limit,
-        remaining: Math.max(0, limit - (currentUsage + 1))
+        remaining: limit === -1 ? -1 : Math.max(0, limit - currentUsage)
       }
     })
   } catch (error) {

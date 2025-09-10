@@ -18,7 +18,11 @@ interface ValidationErrors {
   tires?: string
 }
 
-const RaceStrategyForm = () => {
+interface RaceStrategyFormProps {
+  onSimulationComplete?: () => void
+}
+
+const RaceStrategyForm: React.FC<RaceStrategyFormProps> = ({ onSimulationComplete }) => {
   const { 
     selectedTrack, 
     availableTracks, 
@@ -398,6 +402,11 @@ const RaceStrategyForm = () => {
       if (currentPlan === 'free') {
         await incrementUsage('simulations')
       }
+      
+      // Trigger simulation completion callback
+      if (onSimulationComplete) {
+        onSimulationComplete()
+      }
     } catch (err: any) {
       let msg = err.message || ''
       if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
@@ -472,9 +481,12 @@ const RaceStrategyForm = () => {
                 </span>
                 <Link 
                   href="/pricing" 
-                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 text-sm"
                 >
                   Upgrade to Pro
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
             )}

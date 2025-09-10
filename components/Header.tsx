@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Moon, Sun, LogIn, LogOut } from 'lucide-react'
+import { Moon, Sun, LogIn, LogOut, Car } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useLogoutTracking } from '../lib/hooks/useLogoutTracking'
@@ -91,7 +91,7 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
           {/* Left side - Logo and App Name */}
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl">🏎️</span>
+              <Car className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               F1 Race Sim

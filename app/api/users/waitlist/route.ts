@@ -1,7 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
-import { safeDynamoDB, TABLES } from '../../../../lib/dynamodb-safe'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
+
+// Force dynamic rendering to prevent static optimization errors
+export const dynamic = 'force-dynamic'
+
+// Initialize DynamoDB client with better error handling
+const createDynamoDBClient = () => {
+  const region = process.env.AWS_REGION || 'us-east-1'
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('AWS credentials missing in waitlist API')
+    throw new Error('AWS credentials not configured for waitlist functionality')
+  }
+
+  return new DynamoDBClient({
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  })
+}
+
+let docClient: DynamoDBDocumentClient | null = null
+
+const getDocClient = () => {
+  if (!docClient) {
+    const client = createDynamoDBClient()
+    docClient = DynamoDBDocumentClient.from(client)
+  }
+  return docClient
+}
+
+const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,58 +54,51 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.email
-    const metadataTable = TABLES.STRATEGY_METADATA
-
     console.log('Waitlist POST: Processing request for user:', userId, 'plan:', plan)
-    console.log('Waitlist POST: Using table:', metadataTable)
 
-    // Create or update user profile with waitlist status
-    // First, try to find existing profile using multiple strategies
+    // Test DynamoDB client initialization early
+    try {
+      getDocClient()
+    } catch (clientError) {
+      console.error('DynamoDB client initialization failed:', clientError)
+      return NextResponse.json({ 
+        error: 'Database connection failed. Please try again later.' 
+      }, { status: 503 })
+    }
+
+    // Use the same approach as user store API to find existing users
     let existingProfile = null
     
-    // Strategy 1: Look for exact USER_PROFILE type
-    const profileScan = await safeDynamoDB.scan({
-      TableName: metadataTable,
-      FilterExpression: 'contains(strategy_id, :userId) AND #type = :type',
-      ExpressionAttributeNames: {
-        '#type': 'type'
-      },
-      ExpressionAttributeValues: {
-        ':userId': userId,
-        ':type': 'USER_PROFILE'
-      }
-    }, 'waitlist-POST-profile-scan')
-    
-    existingProfile = profileScan.Items?.[0]
-    
-    // Strategy 2: If no profile found, look for any item with this user ID
-    let userScan = null
-    if (!existingProfile) {
-      userScan = await safeDynamoDB.scan({
-        TableName: metadataTable,
-        FilterExpression: 'contains(strategy_id, :userId)',
+    try {
+      // Query using UserIdIndex to find existing user profile
+      const queryCommand = new QueryCommand({
+        TableName: METADATA_TABLE,
+        IndexName: 'UserIdIndex',
+        KeyConditionExpression: 'user_id = :userId',
+        FilterExpression: 'strategy_id = :profileId',
         ExpressionAttributeValues: {
-          ':userId': userId
-        }
-      }, 'waitlist-POST-user-scan')
+          ':userId': userId,
+          ':profileId': `USER_${userId}_PROFILE`,
+        },
+      })
       
-      // Find the most relevant user item (prefer USER_PROFILE, then any item with user data)
-      const userItems = userScan.Items || []
-      existingProfile = userItems.find(item => item.type === 'USER_PROFILE') || 
-                       userItems.find(item => item.email === userId) ||
-                       userItems.find(item => item.user_id === userId) ||
-                       userItems[0]
+      const existingUser = await getDocClient().send(queryCommand)
+      
+      if (existingUser.Items && existingUser.Items.length > 0) {
+        existingProfile = existingUser.Items[0]
+        console.log('Waitlist POST: Found existing profile:', existingProfile)
+      }
+    } catch (queryError) {
+      console.log('Could not query existing user, proceeding with creation:', queryError)
+      // Continue to create new profile if query fails
     }
-    
-    console.log('Waitlist POST: Profile scan items:', profileScan.Items?.length || 0)
-    console.log('Waitlist POST: User scan items:', userScan?.Items?.length || 0)
-    console.log('Waitlist POST: Existing profile found:', !!existingProfile)
-    console.log('Waitlist POST: Existing profile details:', existingProfile)
-    
+
     if (existingProfile) {
-      // Update existing profile using safe operations
-      const result = await safeDynamoDB.update({
-        TableName: metadataTable,
+      // Update existing profile
+      console.log('Waitlist POST: Updating existing profile')
+      
+      const updateCommand = new UpdateCommand({
+        TableName: METADATA_TABLE,
         Key: {
           strategy_id: existingProfile.strategy_id,
           type: existingProfile.type
@@ -80,7 +109,9 @@ export async function POST(request: NextRequest) {
           ':timestamp': new Date().toISOString()
         },
         ReturnValues: 'ALL_NEW'
-      }, 'waitlist-POST-update')
+      })
+      
+      const result = await getDocClient().send(updateCommand)
       
       return NextResponse.json({ 
         success: true, 
@@ -89,41 +120,32 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Create new user profile with waitlist status
-      console.log('Creating new user profile for waitlist')
-      try {
-        const newProfile = {
-          strategy_id: `USER_${userId}_PROFILE`,
-          type: 'USER_PROFILE',
-          user_id: userId,
-          email: userId,
-          name: 'Unknown User',
-          waitlist_status: plan,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          status: 'active'
-        }
-        
-        const createResult = await safeDynamoDB.put({
-          TableName: metadataTable,
-          Item: newProfile
-        }, 'waitlist-POST-create')
-        
-        console.log('Successfully created new user profile:', createResult)
-        
-        return NextResponse.json({ 
-          success: true, 
-          message: `Added to ${plan} waitlist`,
-          user: newProfile
-        })
-      } catch (createError) {
-        console.error('Error creating new user profile:', createError)
-        // Return success anyway to avoid breaking the user experience
-        return NextResponse.json({ 
-          success: true, 
-          message: `Added to ${plan} waitlist`,
-          user: { waitlist_status: plan, updated_at: new Date().toISOString() }
-        })
+      console.log('Waitlist POST: Creating new user profile')
+      
+      const newProfile = {
+        strategy_id: `USER_${userId}_PROFILE`,
+        type: 'USER_PROFILE',
+        user_id: userId,
+        email: userId,
+        name: session.user.name || 'Unknown User',
+        waitlist_status: plan,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'active'
       }
+      
+      const putCommand = new PutCommand({
+        TableName: METADATA_TABLE,
+        Item: newProfile
+      })
+      
+      await getDocClient().send(putCommand)
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: `Added to ${plan} waitlist`,
+        user: newProfile
+      })
     }
 
   } catch (error) {
@@ -141,35 +163,32 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.email
-    const metadataTable = TABLES.STRATEGY_METADATA
-
-    // Get user's current waitlist status
     const { searchParams } = new URL(request.url)
     const action = searchParams.get('action')
     
     if (action === 'check') {
-      // Check if user is already on waitlist using safe operations
       try {
-        const result = await safeDynamoDB.scan({
-          TableName: metadataTable,
-          FilterExpression: 'contains(strategy_id, :userId) AND #type = :type',
-          ExpressionAttributeNames: {
-            '#type': 'type'
-          },
+        // Use the same approach as user store API
+        const queryCommand = new QueryCommand({
+          TableName: METADATA_TABLE,
+          IndexName: 'UserIdIndex',
+          KeyConditionExpression: 'user_id = :userId',
+          FilterExpression: 'strategy_id = :profileId',
           ExpressionAttributeValues: {
             ':userId': userId,
-            ':type': 'USER_PROFILE'
-          }
-        }, 'waitlist-GET-check')
+            ':profileId': `USER_${userId}_PROFILE`,
+          },
+        })
         
-        const userProfile = result.Items?.[0]
+        const existingUser = await getDocClient().send(queryCommand)
+        const userProfile = existingUser.Items?.[0]
         
         return NextResponse.json({ 
           onWaitlist: !!userProfile?.waitlist_status,
           plan: userProfile?.waitlist_status || null
         })
-      } catch (getError) {
-        console.error('Error getting user profile:', getError)
+      } catch (error) {
+        console.error('Error getting user profile:', error)
         
         // Fallback: return not on waitlist if there's an error
         return NextResponse.json({ 

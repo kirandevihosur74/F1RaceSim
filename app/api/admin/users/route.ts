@@ -2,10 +2,40 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
 import { isAdmin } from '../../../../lib/admin'
-import { scanTable, queryTable, getItem } from '../../../../lib/dynamodb'
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
+
+// Initialize DynamoDB client
+const createDynamoDBClient = () => {
+  const region = process.env.AWS_REGION || 'us-west-1'
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error('AWS credentials not configured')
+  }
+
+  return new DynamoDBClient({
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  })
+}
+
+let docClient: DynamoDBDocumentClient | null = null
+
+const getDocClient = () => {
+  if (!docClient) {
+    const client = createDynamoDBClient()
+    docClient = DynamoDBDocumentClient.from(client)
+  }
+  return docClient
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +66,13 @@ export async function GET(request: NextRequest) {
       // Scan the metadata table to find user profiles
       console.log('Starting scan of metadata table:', metadataTable)
       
-      const allItems = await scanTable(metadataTable)
+      const scanCommand = new ScanCommand({
+        TableName: metadataTable
+      })
+      
+      const scanResult = await getDocClient().send(scanCommand)
+      const allItems = scanResult.Items || []
+      
       console.log('Scan completed, processing items...')
       
       // Filter out any items with invalid keys that could cause pk.match errors
@@ -78,8 +114,8 @@ export async function GET(request: NextRequest) {
       // Process each user profile
       users = userProfiles.map((profile: any, profileIndex: number) => {
         try {
-          // Extract user ID from strategy_id (e.g., "USER_123_PROFILE" -> "123")
-          let userId = profile.strategy_id?.replace('USER_', '').replace('_PROFILE', '') || profile.user_id || 'unknown'
+          // Use email as the primary identifier to prevent duplicates
+          let userId = profile.email || profile.user_id || 'unknown'
           
           // Validate and clean userId
           if (!userId || userId === 'unknown') {
@@ -226,7 +262,7 @@ export async function GET(request: NextRequest) {
           }
 
           return {
-            id: userId,
+            id: profile.email || userId, // Use email as primary ID to prevent duplicates
             email: profile.email || 'unknown@example.com',
             name: profile.name || profile.user_name || 'Unknown User',
             plan: plan,

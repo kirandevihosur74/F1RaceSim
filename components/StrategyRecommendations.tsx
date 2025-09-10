@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Brain, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react'
+import { Brain, Lightbulb, TrendingUp, AlertCircle, Sparkles, Target } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
 
 const StrategyRecommendations = () => {
@@ -125,25 +125,29 @@ const StrategyRecommendations = () => {
             </div>
           </div>
           
-          <div className="text-center mt-4">
+          <div className="text-center mt-6">
             <button
               onClick={handleGetRecommendation}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="btn-secondary inline-flex items-center space-x-2"
             >
-              Refresh Recommendation
+              <TrendingUp className="w-4 h-4" />
+              <span>Refresh Recommendation</span>
             </button>
           </div>
         </div>
       ) : (
         <div className="text-center py-8">
-          <Brain className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Configure your strategy to get recommendations</p>
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg">Configure your strategy to get AI-powered recommendations</p>
           <button
             onClick={handleGetRecommendation}
             disabled={strategy.pit_stops.length === 0 || strategy.tires.length === 0}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            className="btn-primary inline-flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Get Strategy Recommendation
+            <Target className="w-5 h-5" />
+            <span>Get Strategy Recommendation</span>
           </button>
         </div>
       )}

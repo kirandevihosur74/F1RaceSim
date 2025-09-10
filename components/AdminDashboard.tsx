@@ -198,6 +198,8 @@ const AdminDashboard = () => {
     }
   }
 
+
+
   const exportUserData = () => {
     const csvContent = [
       ['ID', 'Name', 'Email', 'Plan', 'Status', 'Last Active', 'Simulations', 'Strategies', 'AI Recommendations', 'Created'],
@@ -274,72 +276,91 @@ const AdminDashboard = () => {
               <Download className="w-4 h-4" />
               <span>Export Data</span>
             </button>
+
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-200 dark:hover:border-blue-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalUsers}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Users</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">{stats.totalUsers}</p>
             </div>
-            <Users className="w-8 h-8 text-blue-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-green-200 dark:hover:border-green-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.activeUsers}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Active Users</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">{stats.activeUsers}</p>
             </div>
-            <Activity className="w-8 h-8 text-green-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-purple-200 dark:hover:border-purple-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Simulations</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalSimulations}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Simulations</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">{stats.totalSimulations}</p>
             </div>
-            <BarChart3 className="w-8 h-8 text-purple-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-orange-200 dark:hover:border-orange-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">AI Recommendations</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalAIRecommendations}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">AI Recommendations</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">{stats.totalAIRecommendations}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-orange-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-yellow-200 dark:hover:border-yellow-800">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Waitlist Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.waitlistUsers}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Waitlist Users</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">{stats.waitlistUsers}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Pro: {stats.waitlistProUsers} | Business: {stats.waitlistBusinessUsers}
               </p>
             </div>
-            <Clock className="w-8 h-8 text-yellow-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* System Health */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-gray-600" />
-          <span>System Health</span>
-        </h2>
+      <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl p-8 mb-8 border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5 dark:opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-blue-500"></div>
+        </div>
+        
+        <div className="relative">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent mb-6 flex items-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-xl flex items-center justify-center mr-3">
+              <Settings className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+            System Health
+          </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="flex items-center space-x-3">
             <div className={`w-3 h-3 rounded-full ${getHealthColor(systemHealth.databaseStatus)}`}></div>
@@ -370,15 +391,24 @@ const AdminDashboard = () => {
             </span>
           </div>
         </div>
+        </div>
       </div>
 
       {/* User Management */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-            <Users className="w-5 h-5 text-gray-600" />
-            <span>User Management</span>
-          </h2>
+      <div className="relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5 dark:opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        </div>
+        
+        <div className="relative">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-xl flex items-center justify-center mr-3">
+                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              User Management
+            </h2>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Search className="w-4 h-4 text-gray-400" />
@@ -511,6 +541,7 @@ const AdminDashboard = () => {
               )}
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </div>

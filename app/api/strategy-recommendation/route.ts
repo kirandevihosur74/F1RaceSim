@@ -1,80 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../lib/auth'
+import { validateApiAccess, incrementUsage, logSecurityEvent } from '../../../lib/planSecurity'
 
 // Force dynamic rendering to prevent static optimization errors
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    // Check user authentication
-    const session = await getServerSession(authOptions)
+    // Validate plan access and rate limiting
+    const accessValidation = await validateApiAccess(request, 'ai_recommendations', true)
     
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const userId = session.user.id
-    
-    // Declare variables in outer scope
-    let currentUsage = 0
-    let limit = 1 // Default to free plan limit
-    let currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-    let dynamoDb: any = null
-    let TABLES: any = null
-    
-    // Check usage limits before allowing AI recommendation
-    try {
-      // Import the usage logic directly
-      const { getCurrentUserPlan } = await import('../../../lib/pricing')
-      const dynamoDbModule = await import('../../../lib/dynamodb')
-      dynamoDb = dynamoDbModule.dynamoDb
-      TABLES = dynamoDbModule.TABLES
-      
-      const plan = getCurrentUserPlan('free') // TODO: Get actual user plan
-      currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
-      const usageKey = `USER_${userId}_USAGE_ai_recommendations_${currentDate}`
-      
-      // Get current usage from DynamoDB
-      const { GetCommand } = await import('@aws-sdk/lib-dynamodb')
-      const getCommand = new GetCommand({
-        TableName: TABLES.STRATEGY_METADATA,
-        Key: { strategy_id: usageKey }
-      })
-      
-      const result = await dynamoDb.send(getCommand)
-      currentUsage = result.Item?.current_count || 0
-      limit = plan.id === 'free' ? 1 : -1 // Free: 1, Pro+: unlimited
-      
-      console.log('AI Recommendation usage check:', {
-        userId,
-        current: currentUsage,
-        limit,
-        remaining: limit === -1 ? 'unlimited' : Math.max(0, limit - currentUsage)
-      })
-      
-      // Check if user can get AI recommendation
-      if (limit !== -1 && currentUsage >= limit) {
-        const resetDate = new Date()
-        resetDate.setDate(resetDate.getDate() + 1)
-        resetDate.setHours(0, 0, 0, 0)
-        
-        return NextResponse.json({ 
-          error: 'Rate limit exceeded',
-          details: {
-            message: 'You have reached the maximum number of strategy recommendations allowed today.',
-            current: currentUsage,
-            limit,
-            remaining: 0,
-            resetDate: resetDate.toISOString()
-          }
-        }, { status: 429 })
+    if (!accessValidation.allowed) {
+      // Log security event for monitoring
+      if (accessValidation.userId) {
+        await logSecurityEvent(accessValidation.userId, 'AI_RECOMMENDATION_ACCESS_DENIED', {
+          reason: accessValidation.message,
+          planId: accessValidation.planId,
+          timestamp: new Date().toISOString()
+        })
       }
       
+      return NextResponse.json({ 
+        error: accessValidation.message || 'Access denied',
+        planId: accessValidation.planId,
+        upgradeRequired: accessValidation.statusCode === 403
+      }, { status: accessValidation.statusCode || 403 })
+    }
+
+    const userId = accessValidation.userId!
+    const planId = accessValidation.planId!
+    
+    console.log('AI Recommendation request validated for user:', userId, 'plan:', planId)
+    
+    // Increment usage after successful validation
+    try {
+      await incrementUsage(userId, 'ai_recommendations')
+      console.log('AI recommendation usage incremented for user:', userId)
     } catch (error) {
-      console.error('Error checking AI recommendation usage:', error)
-      // If usage check fails, allow recommendation to proceed (fail-safe)
-      console.log('Usage check failed, allowing AI recommendation to proceed')
+      console.error('Error incrementing AI recommendation usage:', error)
+      // Continue with recommendation even if usage tracking fails
     }
 
     const body = await request.json()

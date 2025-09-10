@@ -15,7 +15,9 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.873.0",
     "@aws-sdk/lib-dynamodb": "^3.873.0",
-
+    "@fortawesome/fontawesome-svg-core": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
+    "@fortawesome/react-fontawesome": "^3.0.2",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -23,6 +25,8 @@
     "autoprefixer": "^10.4.0",
     "axios": "^1.6.0",
     "country-list": "^2.3.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.2",
     "lucide-react": "^0.292.0",
     "next": "14.0.0",
     "next-auth": "^4.24.11",
@@ -32,7 +36,6 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.2",
     "recharts": "^2.8.0",
-
     "swiper": "^11.2.10",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.0",

@@ -17,7 +17,11 @@ const formatTotalTime = (time: number) => {
   return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds}`
 }
 
-const SimulationResultsChart = () => {
+interface SimulationResultsChartProps {
+  showCard?: boolean
+}
+
+const SimulationResultsChart: React.FC<SimulationResultsChartProps> = ({ showCard = true }) => {
   const {
     simulationResults,
     totalTime,
@@ -35,14 +39,20 @@ const SimulationResultsChart = () => {
   const weather = 'Dry'
 
   if (!simulationResults || simulationResults.length === 0) {
-    return (
-      <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>
+    const content = (
+      <>
+        {showCard && <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>}
         <div className="text-center py-12 text-gray-500">
           <p>Run a simulation to see results</p>
         </div>
-      </div>
+      </>
     )
+    
+    return showCard ? (
+      <div className="card">
+        {content}
+      </div>
+    ) : content
   }
 
   const laps = simulationResults.map(d => d.lap)
@@ -155,9 +165,9 @@ const SimulationResultsChart = () => {
     },
   ]
 
-  return (
-    <div className="card">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>
+  const content = (
+    <>
+      {showCard && <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Simulation Results</h2>}
       
       <div className="flex flex-wrap gap-4 mb-4 text-sm text-gray-700 dark:text-gray-300 items-center">
         {track && <span><b>Track:</b> {track.name}</span>}
@@ -199,8 +209,14 @@ const SimulationResultsChart = () => {
           <p className="text-gray-700 dark:text-gray-300">{strategyAnalysis}</p>
         </div>
       )}
-    </div>
+    </>
   )
+
+  return showCard ? (
+    <div className="card">
+      {content}
+    </div>
+  ) : content
 }
 
 export default SimulationResultsChart 
