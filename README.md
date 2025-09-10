@@ -6,85 +6,40 @@ A comprehensive Formula 1 race strategy simulator that helps you plan, simulate,
 
 ---
 
-## 🚀 Features
+## Features
 
 ### Core Functionality
-- **Track Selection** - Choose from 23+ F1 circuits with real data
+- **Track Selection** - Choose from F1 circuits with real data
 - **Strategy Builder** - Create and edit multiple race strategies
 - **Race Simulation** - Run detailed simulations with realistic results
 - **AI Recommendations** - Get strategy advice from Google Gemini AI
-- **Weather Integration** - Real-time weather data with fallback simulation
-- **Multi-Car Racing** - Simulate up to 20 cars with overtaking events
+- **Weather Integration** - Real-time weather data simulation with OpenWeatherMap API
 - **Strategy Comparison** - Compare up to 5 strategies side by side
-- **Interactive Charts** - Visualize results with ApexCharts and Recharts
+- **Interactive Charts** - Visualize simulation results with ApexCharts and Recharts
+- **Tire Strategy** - Multiple compounds (Soft, Medium, Hard, Intermediate, Wet) with degradation modeling
+- **Pit Stop Optimization** - Strategic timing and tire changes
+- **Driver Styles** - Aggressive, Balanced, and Conservative options with performance impacts
+- **Performance Metrics** - Lap times, fuel consumption, position tracking, tire wear analysis
 
 ### User Management & Analytics
 - **Google Authentication** - Secure sign-in with NextAuth.js
-- **Usage Tracking** - Monitor daily usage across all features
+- **Usage Tracking** - Monitor daily usage across all features with rate limiting
 - **Plan Management** - Free, Pro, and Business tier support
 - **Waitlist System** - Join waitlist for premium plans
 - **Admin Dashboard** - Comprehensive user and system analytics
-- **PDF Reports** - Generate detailed simulation reports
+- **PDF Reports** - Generate detailed simulation reports with charts and analysis
+- **Results Sharing** - Share simulation results via native sharing or clipboard
 
 ### Advanced Features
-- **Real-time Weather** - Track conditions and grip levels
-- **Tire Strategy** - Multiple compounds with degradation modeling
-- **Pit Stop Optimization** - Strategic timing and tire changes
-- **Driver Styles** - Aggressive, Balanced, and Conservative options
-- **Risk Analysis** - Comprehensive strategy risk assessment
-- **Performance Metrics** - Lap times, fuel consumption, position tracking
+- **Real-time Weather** - Track conditions and grip levels with live API integration
+- **Risk Analysis** - Comprehensive strategy risk assessment and optimization suggestions
+- **Multi-car Simulation** - Advanced race scenarios with multiple competitors
+- **Weather Forecasting** - Lap-by-lap weather predictions and impact analysis
+- **Strategy Analytics** - Deep insights into strategy performance and recommendations
 
 ---
 
-## 🎯 Getting Started
-
-1. **Choose a Track** - Pick from available F1 circuits
-2. **Sign In** - Use Google authentication to access all features
-3. **Build Your Strategy** - Set pit stop laps, tire compounds, and driving style
-4. **Save & Run** - Save your strategy and run the simulation
-5. **Get AI Tips** - Receive strategy recommendations from AI
-6. **Compare Results** - Test multiple strategies side by side
-7. **Check Weather** - See how weather affects your race
-
-**Note:** Free plan includes 3 daily simulations. Upgrade to Pro for unlimited access.
-
----
-
-## 🏗️ Architecture
-
-### Frontend Stack
-- **React 18** + **TypeScript** - Modern component architecture
-- **Next.js 14** - Full-stack React framework with API routes
-- **Tailwind CSS** - Utility-first styling with dark mode support
-- **Zustand** - Lightweight state management
-- **FontAwesome** - Professional icon library
-- **ApexCharts** + **Recharts** - Interactive data visualization
-- **NextAuth.js** - Secure authentication with Google OAuth
-
-### Backend & Infrastructure
-- **FastAPI** - High-performance Python API
-- **AWS DynamoDB** - NoSQL database for user data and usage tracking
-- **AWS Lambda** - Serverless function deployment
-- **Google Gemini AI** - Advanced strategy recommendations
-- **OpenWeatherMap API** - Real-time weather data
-- **Ergast API** - F1 circuit and race data
-
-### Data Management
-- **User Profiles** - Comprehensive user data storage
-- **Usage Tracking** - Daily limits and feature monitoring
-- **Plan Management** - Subscription and billing integration
-- **Waitlist System** - Premium plan pre-registration
-- **Admin Analytics** - System health and user insights
-
----
-
-## 🛠️ Setup & Installation
-
-### Prerequisites
-- **Node.js 18+** - Frontend development
-- **Python 3.11+** - Backend API
-- **AWS Account** - Database and deployment
-- **Google Cloud Account** - OAuth credentials
+## Getting Started
 
 ### Quick Start
 
@@ -136,7 +91,6 @@ OPENWEATHER_API_KEY=your-openweather-api-key
 - Add authorized redirect URIs:
   - `http://localhost:3000/api/auth/callback/google` (development)
   - `https://yourdomain.com/api/auth/callback/google` (production)
-- See [NextAuth.js Setup Guide](docs/nextauth-setup.md) for detailed instructions
 
 5. **Start Development Servers**
 ```bash
@@ -150,37 +104,83 @@ python main.py
 
 Visit `http://localhost:3000` to see the application.
 
+### How to Use
+
+1. **Sign In** - Use Google authentication to access all features
+2. **Choose a Track** - Pick from available F1 circuits
+3. **Build Your Strategy** - Set pit stop laps, tire compounds, and driving style
+4. **Save & Run** - Save your strategy and run the simulation
+5. **View Results** - Simulation results appear in a popup window with interactive charts
+6. **Download Reports** - Export detailed simulation results as PDF reports
+7. **Get AI Tips** - Receive strategy recommendations from AI
+8. **Compare Results** - Test multiple strategies side by side
+
+
 ---
 
-## 📊 Plan Features & Limits
+## Plan Features & Limits
 
 ### Free Plan
-- ✅ 3 simulations per day
-- ✅ 5 saved strategies
-- ✅ 1 AI recommendation per day
-- ✅ Basic weather data
-- ✅ Strategy comparison (2 strategies)
+- Basic Race Strategy Creation
+- 1 Simulation per Day
+- Strategy Comparison
+- Weather Data
+- Track Selection
+- 1 AI Recommendation
 
 ### Pro Plan (Waitlist)
-- ✅ Unlimited simulations
-- ✅ 50 saved strategies
-- ✅ Unlimited AI recommendations
-- ✅ Advanced weather analytics
-- ✅ Strategy comparison (5 strategies)
-- ✅ PDF report generation
-- ✅ Priority support
+- Basic Race Strategy Creation
+- Strategy Comparison
+- Weather Data
+- Track Selection
+- Advanced Analytics
+- Unlimited Simulations
+- Unlimited AI Recommendations
 
 ### Business Plan (Waitlist)
-- ✅ Everything in Pro
-- ✅ Unlimited strategies
-- ✅ Team collaboration
-- ✅ Advanced analytics
-- ✅ API access
-- ✅ Custom integrations
+- Basic Race Strategy Creation
+- Strategy Comparison
+- Weather Data
+- Track Selection
+- Advanced Analytics
+- Unlimited Simulations
+- Unlimited AI Recommendations
 
 ---
 
-## 🚀 Deployment
+## Architecture
+
+### Frontend Stack
+- **React 18** + **TypeScript** - Modern component architecture
+- **Next.js 14** - Full-stack React framework with API routes
+- **Tailwind CSS** - Utility-first styling with dark mode support
+- **Zustand** - Lightweight state management
+- **FontAwesome** - Professional icon library (used throughout UI)
+- **ApexCharts** + **Recharts** - Interactive data visualization
+- **NextAuth.js** - Secure authentication with Google OAuth
+- **Lucide React** - Additional icon components
+
+### Backend & Infrastructure
+- **FastAPI** - High-performance Python API for race simulation
+- **AWS DynamoDB** - NoSQL database for user data and usage tracking
+- **AWS Lambda** - Serverless function deployment
+- **Google Gemini AI** - Advanced strategy recommendations
+- **OpenWeatherMap API** - Real-time weather data integration
+- **Jolpi API** - F1 circuit and race data with fallback to local data
+- **PDF Generation** - Client-side PDF report generation with charts
+
+### Data Management
+- **User Profiles** - Comprehensive user data storage with DynamoDB
+- **Usage Tracking** - Daily limits and feature monitoring with rate limiting
+- **Plan Management** - Free, Pro, and Business tier support
+- **Waitlist System** - Premium plan pre-registration
+- **Admin Analytics** - System health and user insights dashboard
+- **Strategy Storage** - Local and cloud strategy persistence
+- **Weather Forecasting** - Real-time and simulated weather data
+
+---
+
+## Deployment
 
 ### Frontend (Vercel)
 ```bash
@@ -207,7 +207,7 @@ Configure these in your deployment platform:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Frontend Tests
 ```bash
@@ -232,71 +232,7 @@ python -m pytest
 
 ---
 
-## 📁 Project Structure
-
-```
-F1RaceSim/
-├── app/                    # Next.js 14 app directory
-│   ├── api/               # API routes
-│   │   ├── auth/          # Authentication endpoints
-│   │   ├── users/         # User management
-│   │   ├── admin/         # Admin dashboard APIs
-│   │   └── simulate-race/ # Simulation endpoints
-│   ├── admin/             # Admin dashboard pages
-│   ├── pricing/           # Pricing page
-│   └── docs/              # Documentation pages
-├── components/            # React components
-│   ├── ui/               # Reusable UI components
-│   └── *.tsx             # Feature components
-├── lib/                  # Utility libraries
-│   ├── hooks/            # Custom React hooks
-│   ├── auth.ts           # NextAuth configuration
-│   ├── dynamodb.ts       # Database utilities
-│   ├── pricing.ts        # Plan management
-│   └── usageTracking.ts  # Usage monitoring
-├── store/                # Zustand state management
-├── backend/              # Python FastAPI backend
-├── docs/                 # Documentation
-└── infra/                # AWS infrastructure
-```
-
----
-
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /api/auth/[...nextauth]` - Google OAuth flow
-
-### User Management
-- `GET /api/users/usage` - Get user usage statistics
-- `POST /api/users/usage` - Track feature usage
-- `POST /api/users/waitlist` - Join premium waitlist
-- `GET /api/users/plan` - Get user subscription plan
-
-### Simulations
-- `POST /api/simulate-race` - Run race simulation
-- `POST /api/strategy-comparison` - Compare strategies
-- `POST /api/strategy-recommendation` - Get AI recommendations
-
-### Admin
-- `GET /api/admin/users` - User analytics
-- `GET /api/admin/system-health` - System status
-
----
-
-## 📚 Documentation
-
-- [API Setup Guide](docs/api-setup.md) - Backend API configuration
-- [AWS Setup Guide](docs/aws-setup.md) - AWS infrastructure setup
-- [NextAuth.js Setup Guide](docs/nextauth-setup.md) - Authentication setup
-- [Database Schema](docs/database-schema.md) - Database structure
-- [DynamoDB Schema](docs/dynamodb-schema.md) - NoSQL table design
-- [Usage Tracking](docs/usage-tracking-implementation.md) - Feature monitoring
-- [Admin Dashboard Setup](docs/admin-dashboard-setup.md) - Admin panel configuration
-
----
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -310,24 +246,16 @@ F1RaceSim/
 - Update documentation for API changes
 - Use conventional commit messages
 - Ensure all tests pass before submitting
-
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🆘 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/kirandevihosur74/F1RaceSim/issues)
 - **Email**: kirandevihosur74@gmail.com
-- **Documentation**: Check the `/docs` folder for detailed guides
 
 ---
 
-## 🎉 Acknowledgments
+## Acknowledgments
 
 - **Ergast API** - F1 circuit and race data
 - **OpenWeatherMap** - Weather data integration
@@ -336,4 +264,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ for F1 fans and strategy enthusiasts**
+**Built with love for F1 fans and strategy enthusiasts**
