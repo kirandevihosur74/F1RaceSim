@@ -6,6 +6,11 @@ A comprehensive Formula 1 race strategy simulator that helps you plan, simulate,
 
 ---
 
+## System Architecture (High Level Design)
+
+![Alt text](system_architecture.png)
+
+
 ## Features
 
 ### Core Functionality
@@ -125,7 +130,7 @@ Visit `http://localhost:3000` to see the application.
 
 ---
 
-## Architecture
+## Tech Stack Used
 
 ### Frontend Stack
 - **React 18** + **TypeScript** - Modern component architecture
@@ -145,15 +150,6 @@ Visit `http://localhost:3000` to see the application.
 - **OpenWeatherMap API** - Real-time weather data integration
 - **Jolpi API** - F1 circuit and race data with fallback to local data
 - **PDF Generation** - Client-side PDF report generation with charts
-
-### Data Management
-- **User Profiles** - Comprehensive user data storage with DynamoDB
-- **Usage Tracking** - Daily limits and feature monitoring with rate limiting
-- **Plan Management** - Free, Pro, and Business tier support
-- **Waitlist System** - Premium plan pre-registration
-- **Admin Analytics** - System health and user insights dashboard
-- **Strategy Storage** - Local and cloud strategy persistence
-- **Weather Forecasting** - Real-time and simulated weather data
 
 ---
 
@@ -223,5 +219,7 @@ python -m pytest
 
 - **Issues**: [GitHub Issues](https://github.com/kirandevihosur74/F1RaceSim/issues)
 - **Email**: kirandevihosur74@gmail.com
+
+## If you like my work, follow me on [X (Twitter)](https://x.com/kiran_devihosur)
 
 ---
