@@ -425,6 +425,8 @@ export async function validateApiAccess(
   planId?: string
   message?: string
   statusCode?: number
+  current?: number
+  limit?: number
 }> {
   try {
     // Check authentication if required
@@ -468,7 +470,9 @@ export async function validateApiAccess(
         userId,
         planId: planValidation.planId,
         message: planValidation.message,
-        statusCode: planValidation.allowed ? 200 : 403
+        statusCode: planValidation.allowed ? 200 : 403,
+        current: planValidation.current,
+        limit: planValidation.limit
       }
     }
     
