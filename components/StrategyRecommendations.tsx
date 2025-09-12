@@ -71,14 +71,42 @@ const StrategyRecommendations = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30 rounded-lg p-4">
+        <div className={`mb-4 rounded-lg p-4 ${
+          error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')
+            ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/30'
+            : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/30'
+        }`}>
           <div className="flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+              error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')
+                ? 'text-orange-600 dark:text-orange-400'
+                : 'text-red-600 dark:text-red-400'
+            }`} />
             <div>
-              <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">Error</h3>
-              <p className="text-red-700 dark:text-red-300">{error}</p>
-              {error.includes('Rate limit exceeded') && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+              <h3 className={`font-semibold mb-2 ${
+                error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')
+                  ? 'text-orange-900 dark:text-orange-100'
+                  : 'text-red-900 dark:text-red-100'
+              }`}>
+                {error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')
+                  ? 'Daily Limit Reached'
+                  : 'Error'
+                }
+              </h3>
+              <p className={`${
+                error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')
+                  ? 'text-orange-700 dark:text-orange-300'
+                  : 'text-red-700 dark:text-red-300'
+              }`}>
+                {error.includes('Daily AI recommendation limit reached')
+                  ? 'Upgrade to Pro for unlimited recommendations.'
+                  : error.includes('Rate limit exceeded')
+                  ? 'You have reached the maximum number of strategy recommendations allowed today.'
+                  : error
+                }
+              </p>
+              {(error.includes('Rate limit exceeded') || error.includes('Daily AI recommendation limit reached')) && (
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
                   Please try again tomorrow or upgrade your plan for unlimited recommendations.
                 </p>
               )}

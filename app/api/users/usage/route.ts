@@ -39,7 +39,15 @@ const getDocClient = () => {
 }
 
 // Use the dedicated usage tracking table
-const USER_USAGE_TABLE = process.env.USER_USAGE_TABLE || 'f1-user-usage-dev'
+const USER_USAGE_TABLE = (process.env.USER_USAGE_TABLE || 'f1-user-usage-dev').trim()
+
+// Log table configuration for debugging
+console.log('Usage API - Table configuration:', {
+  USER_USAGE_TABLE,
+  AWS_REGION: process.env.AWS_REGION,
+  hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+  hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY
+})
 
 // Helper functions for usage management
 const getFeatureDateKey = (feature: string, date: string) => {
@@ -125,9 +133,9 @@ export async function GET(request: NextRequest) {
     const usageSummary = []
 
     for (const feature of features) {
+      let featureDateKey: string = 'unknown'
       try {
         // Query usage for this feature and date
-        let featureDateKey: string
         try {
           featureDateKey = getFeatureDateKey(feature, currentDate)
         } catch (keyError) {
@@ -144,6 +152,11 @@ export async function GET(request: NextRequest) {
           }
         })
         
+        console.log('Usage API GET - DynamoDB query:', {
+          table: USER_USAGE_TABLE,
+          key: { user_id: userId, feature_date_key: featureDateKey }
+        })
+        
         const result = await getDocClient().send(getCommand)
         const current = result.Item?.usage_count || 0
         const limit = getFeatureLimit(plan, feature)
@@ -157,7 +170,13 @@ export async function GET(request: NextRequest) {
           isUnlimited: limit === -1
         })
       } catch (error) {
-        console.error(`Error fetching usage for ${feature}:`, error)
+        console.error(`Error fetching usage for ${feature}:`, {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          table: USER_USAGE_TABLE,
+          userId,
+          featureDateKey
+        })
         // Add default entry if query fails
         const limit = getFeatureLimit(plan, feature)
         usageSummary.push({
@@ -172,15 +191,21 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ usage: usageSummary })
   } catch (error) {
-    console.error('Error fetching usage:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error fetching usage:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  
   try {
-    const session = await getServerSession(authOptions)
-    
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -221,9 +246,21 @@ export async function POST(request: NextRequest) {
         }
       })
       
+      console.log('Usage API POST - DynamoDB get query:', {
+        table: USER_USAGE_TABLE,
+        key: { user_id: userId, feature_date_key: featureDateKey }
+      })
+      
       const result = await getDocClient().send(getCommand)
       currentUsage = result.Item?.usage_count || 0
     } catch (error) {
+      console.error('Error getting current usage:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        table: USER_USAGE_TABLE,
+        userId,
+        featureDateKey
+      })
       // No existing usage record, start at 0
       currentUsage = 0
     }
@@ -262,6 +299,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log('Usage API POST - DynamoDB put command:', {
+      table: USER_USAGE_TABLE,
+      item: {
+        user_id: userId,
+        feature_date_key: featureDateKey,
+        feature_name: feature,
+        usage_count: newUsage,
+        reset_date: getResetDate(feature).toISOString().split('T')[0],
+        limit_value: limit,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    })
+    
     await getDocClient().send(putCommand)
     
     const resetDate = getResetDate(feature)
@@ -277,7 +328,17 @@ export async function POST(request: NextRequest) {
       message: `Usage tracked for ${feature}`
     })
   } catch (error) {
-    console.error('Error tracking usage:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error tracking usage:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      table: USER_USAGE_TABLE,
+      userId: session?.user?.id || 'unknown',
+      feature: 'unknown',
+      featureDateKey: 'unknown'
+    })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 })
   }
 }

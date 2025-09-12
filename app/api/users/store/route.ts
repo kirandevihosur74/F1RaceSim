@@ -162,6 +162,14 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, user store operation disabled - this is expected when running locally')
+      return NextResponse.json(
+        { error: 'Database temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
     console.error('Error storing user in DynamoDB:', error)
     return NextResponse.json(
       { error: 'Failed to store user data' },
@@ -208,6 +216,14 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, user retrieval disabled - this is expected when running locally')
+      return NextResponse.json(
+        { error: 'Database temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
     console.error('Error retrieving user from DynamoDB:', error)
     return NextResponse.json(
       { error: 'Failed to retrieve user data' },

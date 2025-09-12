@@ -298,12 +298,17 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         body: JSON.stringify({ scenario }),
       })
 
-      if (response.status === 429) {
+      if (response.status === 429 || response.status === 403) {
         const errorData = await response.json()
-        let msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.'
-        if (msg.includes('Rate limit exceeded') && msg.includes('per 1 day')) {
-          msg = 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.'
+        let msg = errorData.error || 'Daily AI recommendation limit reached. Upgrade to Pro for unlimited recommendations.'
+        
+        // Handle different error types
+        if (response.status === 403) {
+          msg = errorData.error || 'Daily AI recommendation limit reached. Upgrade to Pro for unlimited recommendations.'
+        } else if (response.status === 429) {
+          msg = errorData.error || 'Rate limit exceeded: You have reached the maximum number of strategy recommendations allowed today.'
         }
+        
         throw new Error(msg)
       }
 

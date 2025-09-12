@@ -37,7 +37,7 @@ const getDocClient = () => {
 }
 
 // Use the dedicated simulation results table
-const SIMULATION_RESULTS_TABLE = process.env.SIMULATION_RESULTS_TABLE || 'f1-simulation-results'
+const SIMULATION_RESULTS_TABLE = (process.env.SIMULATION_RESULTS_TABLE || 'f1-simulation-results').trim()
 
 export async function POST(request: NextRequest) {
   try {

@@ -38,7 +38,7 @@ const getDocClient = () => {
 }
 
 // Use the dedicated subscription table
-const USER_SUBSCRIPTIONS_TABLE = process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev'
+const USER_SUBSCRIPTIONS_TABLE = (process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev').trim()
 
 export async function GET(request: NextRequest) {
   try {

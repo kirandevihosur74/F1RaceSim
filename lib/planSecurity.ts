@@ -39,9 +39,12 @@ const getDocClient = () => {
 
 // Multi-table configuration
 const METADATA_TABLE = process.env.METADATA_TABLE || 'f1-strategy-metadata-dev'
-const USER_SUBSCRIPTIONS_TABLE = process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev'
-const USER_USAGE_TABLE = process.env.USER_USAGE_TABLE || 'f1-user-usage-dev'
-const USER_ACTIONS_LOG_TABLE = process.env.USER_ACTIONS_LOG_TABLE || 'f1-user-actions-log-dev'
+const USER_SUBSCRIPTIONS_TABLE = (process.env.USER_SUBSCRIPTIONS_TABLE || 'f1-user-subscriptions-dev').trim()
+const USER_USAGE_TABLE = (process.env.USER_USAGE_TABLE || 'f1-user-usage-dev').trim()
+const USER_ACTIONS_LOG_TABLE = (process.env.USER_ACTIONS_LOG_TABLE || 'f1-user-actions-log-dev').trim()
+
+// Local usage tracking for when DynamoDB is unavailable
+const localUsageCache = new Map<string, Map<string, number>>()
 
 export interface PlanValidationResult {
   allowed: boolean
@@ -114,6 +117,12 @@ export async function getUserPlan(userId: string): Promise<string> {
     return 'free'
   } catch (error) {
     console.error('Error getting user plan:', error)
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, using fallback plan detection')
+      // For network issues, allow access but with free plan limits
+      return 'free'
+    }
     return 'free' // Default to free plan on error
   }
 }
@@ -138,8 +147,39 @@ export async function getCurrentUsage(userId: string, feature: string): Promise<
     return result.Item?.usage_count || 0
   } catch (error) {
     console.error('Error getting current usage:', error)
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, using local usage tracking')
+      // Use local cache for usage tracking when DynamoDB is unavailable
+      return getLocalUsage(userId, feature)
+    }
     return 0
   }
+}
+
+// Local usage tracking functions for when DynamoDB is unavailable
+function getLocalUsage(userId: string, feature: string): number {
+  const currentDate = new Date().toISOString().split('T')[0]
+  const featureDateKey = `${feature}_${currentDate}`
+  
+  if (!localUsageCache.has(userId)) {
+    localUsageCache.set(userId, new Map())
+  }
+  
+  const userCache = localUsageCache.get(userId)!
+  return userCache.get(featureDateKey) || 0
+}
+
+function setLocalUsage(userId: string, feature: string, count: number): void {
+  const currentDate = new Date().toISOString().split('T')[0]
+  const featureDateKey = `${feature}_${currentDate}`
+  
+  if (!localUsageCache.has(userId)) {
+    localUsageCache.set(userId, new Map())
+  }
+  
+  const userCache = localUsageCache.get(userId)!
+  userCache.set(featureDateKey, count)
 }
 
 /**
@@ -174,6 +214,14 @@ export async function incrementUsage(userId: string, feature: string): Promise<v
     await getDocClient().send(putCommand)
   } catch (error) {
     console.error('Error incrementing usage:', error)
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, using local usage tracking')
+      // Use local cache for usage tracking when DynamoDB is unavailable
+      const currentUsage = getLocalUsage(userId, feature)
+      setLocalUsage(userId, feature, currentUsage + 1)
+      return
+    }
     throw error
   }
 }
@@ -459,6 +507,12 @@ export async function logSecurityEvent(
     
     await getDocClient().send(logCommand)
   } catch (error) {
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, security event logging disabled')
+      // Don't log network errors as they're expected when running locally
+      return
+    }
     console.error('Error logging security event:', error)
   }
 }
@@ -487,6 +541,12 @@ export async function logUserAction(
     
     await getDocClient().send(logCommand)
   } catch (error) {
+    // Check if it's a network connectivity issue
+    if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+      console.warn('DynamoDB connection failed, user action logging disabled')
+      // Don't log network errors as they're expected when running locally
+      return
+    }
     console.error('Error logging user action:', error)
   }
 }

@@ -54,7 +54,7 @@ const RaceStrategyForm: React.FC<RaceStrategyFormProps> = ({ onSimulationComplet
   const currentPlan = 'free' // This should come from user's subscription
   
   // Usage tracking
-  const { usage, checkUsage, incrementUsage } = useUsage()
+  const { usage, checkUsage, incrementUsage, refreshUsage } = useUsage()
   
   // Get simulation usage
   const simulationUsage = usage.find(u => u.feature === 'simulations')
@@ -398,10 +398,9 @@ const RaceStrategyForm: React.FC<RaceStrategyFormProps> = ({ onSimulationComplet
       // Run simulation with weather string
       await runSimulation(localStrategy.weather_conditions)
       
-      // Track usage for simulations
-      if (currentPlan === 'free') {
-        await incrementUsage('simulations')
-      }
+      // Refresh usage data after simulation completes
+      // The server-side simulation API already increments usage, so we just need to refresh the display
+      await refreshUsage()
       
       // Trigger simulation completion callback
       if (onSimulationComplete) {

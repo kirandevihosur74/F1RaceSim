@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       )
 
       // Process each user profile
-      users = userProfiles.map((profile: any, profileIndex: number) => {
+      users = await Promise.all(userProfiles.map(async (profile: any, profileIndex: number) => {
         try {
           // Use email as the primary identifier to prevent duplicates
           let userId = profile.email || profile.user_id || 'unknown'
@@ -132,33 +132,48 @@ export async function GET(request: NextRequest) {
             type: profile.type
           })
           
-          // Find usage records for this user (current day)
+          // Get usage records from the correct USER_USAGE_TABLE
           const currentDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+          const usageTable = process.env.USER_USAGE_TABLE || 'f1-user-usage-dev'
           
-          const userUsageRecords = validItems.filter((item: any) => {
-            try {
-              // Additional validation for usage records
-              if (!item.user_id || !item.type || !item.date) {
-                return false
-              }
+          let totalSimulations = 0
+          let totalStrategies = 0
+          let totalAIRecommendations = 0
+          
+          try {
+            // Query usage records for each feature
+            const features = ['simulations', 'strategies', 'ai_recommendations']
+            
+            for (const feature of features) {
+              const featureDateKey = `${feature}_${currentDate}`
               
-              return item.user_id === userId && 
-                     item.type === 'USER_USAGE' && 
-                     item.date === currentDate
-            } catch (filterError) {
-              console.error(`Error filtering usage records for user ${userId}:`, filterError)
-              return false
+              const getCommand = new GetCommand({
+                TableName: usageTable,
+                Key: { 
+                  user_id: userId,
+                  feature_date_key: featureDateKey
+                }
+              })
+              
+              const usageResult = await getDocClient().send(getCommand)
+              const usageCount = usageResult.Item?.usage_count || 0
+              
+              switch (feature) {
+                case 'simulations':
+                  totalSimulations = usageCount
+                  break
+                case 'strategies':
+                  totalStrategies = usageCount
+                  break
+                case 'ai_recommendations':
+                  totalAIRecommendations = usageCount
+                  break
+              }
             }
-          })
-          
-          // Calculate usage statistics from USER_USAGE records
-          const simulationUsage = userUsageRecords.find((item: any) => item.feature === 'simulations')
-          const strategyUsage = userUsageRecords.find((item: any) => item.feature === 'strategies')
-          const aiRecommendationUsage = userUsageRecords.find((item: any) => item.feature === 'ai_recommendations')
-          
-          const totalSimulations = simulationUsage?.current_count || 0
-          const totalStrategies = strategyUsage?.current_count || 0
-          const totalAIRecommendations = aiRecommendationUsage?.current_count || 0
+          } catch (usageError) {
+            console.error(`Error fetching usage data for user ${userId}:`, usageError)
+            // Keep default values of 0 if there's an error
+          }
           
           console.log(`Usage for user ${userId}:`, {
             simulations: totalSimulations,
@@ -214,29 +229,9 @@ export async function GET(request: NextRequest) {
             status = 'inactive'
           }
           
-          // If no last active, use the most recent usage record
+          // If no last active, use the profile creation date
           if (!lastActive || lastActive === profile.created_at) {
-            if (userUsageRecords.length > 0) {
-              const timestamps = userUsageRecords.map((item: any) => {
-                try {
-                  const dateStr = item.created_at || item.updated_at || item.timestamp
-                  if (!dateStr) return 0
-                  
-                  const date = new Date(dateStr)
-                  return isNaN(date.getTime()) ? 0 : date.getTime()
-                } catch (error) {
-                  console.warn('Error parsing date for item:', item, error)
-                  return 0
-                }
-              }).filter(time => time > 0)
-              
-              if (timestamps.length > 0) {
-                const mostRecent = Math.max(...timestamps)
-                if (mostRecent > 0) {
-                  lastActive = new Date(mostRecent).toISOString()
-                }
-              }
-            }
+            lastActive = profile.created_at || new Date().toISOString()
           }
 
           console.log(`Final status for user ${userId}: ${status}`)
@@ -289,7 +284,7 @@ export async function GET(request: NextRequest) {
             createdAt: new Date().toISOString().split('T')[0]
           }
         }
-      })
+      }))
 
             // If no real users found, return empty array instead of mock data
       if (users.length === 0) {
@@ -307,6 +302,9 @@ export async function GET(request: NextRequest) {
           message: error.message,
           stack: error.stack
         })
+      } else if (error instanceof Error && (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'))) {
+        console.warn('DynamoDB connection failed in admin users route - this is expected when running locally')
+        // Don't log network errors as they're expected when running locally
       }
       
       // Return empty array instead of fallback data
