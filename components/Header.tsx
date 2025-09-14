@@ -3,6 +3,7 @@ import { Moon, Sun, LogIn, LogOut, Car } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { useLogoutTracking } from '../lib/hooks/useLogoutTracking'
+import { isAdmin } from '../lib/admin'
 
 interface HeaderProps {
   onOpenLogin: () => void
@@ -106,11 +107,19 @@ const Header = ({ onOpenLogin }: HeaderProps) => {
             <Link href="/features" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium text-base">
               Features
             </Link>
-            {session?.user && (
-              <Link href="/admin" className="text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors font-semibold text-base px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                Admin
-              </Link>
-            )}
+            {(() => {
+              const userIsAdmin = session?.user && isAdmin(session.user.email)
+              console.log('Header admin check:', {
+                hasSession: !!session?.user,
+                userEmail: session?.user?.email,
+                isAdmin: userIsAdmin
+              })
+              return userIsAdmin && (
+                <Link href="/admin" className="text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400 transition-colors font-semibold text-base px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+                  Admin
+                </Link>
+              )
+            })()}
             <Link href="/docs" className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium text-base">
               Docs
             </Link>

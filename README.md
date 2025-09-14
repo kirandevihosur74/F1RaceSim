@@ -1,3 +1,7 @@
+---
+encoding: utf-8
+---
+
 # F1 Race Strategy Simulator
 
 A comprehensive Formula 1 race strategy simulator that helps you plan, simulate, and optimize race strategies with real data, weather conditions, AI recommendations, and advanced analytics.
