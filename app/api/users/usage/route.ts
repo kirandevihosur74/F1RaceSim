@@ -73,7 +73,7 @@ const getFeatureLimit = (plan: any, feature: string): number => {
     case 'strategies':
       return plan.limits.strategies
     case 'ai_recommendations':
-      return plan.id === 'free' ? 1 : -1 // Free: 1, Pro+: unlimited
+      return plan.id === 'free' ? 3 : -1 // Free: 3, Pro+: unlimited
     default:
       return 0
   }

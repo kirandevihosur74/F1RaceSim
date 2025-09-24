@@ -63,7 +63,7 @@ CREATE TABLE user_actions_log (
 ### Free Plan
 - simulations_per_day: 3
 - strategies: 5
-- ai_recommendations: 1
+- ai_recommendations: 3
 
 ### Pro Plan  
 - simulations_per_day: unlimited (-1)

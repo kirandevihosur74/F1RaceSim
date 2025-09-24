@@ -134,8 +134,8 @@ export class UsageTracker {
         // Check if feature is included in plan
         const aiFeature = plan.features.find(f => f.id === 'ai-recommendations')
         if (!aiFeature?.included) return 0
-        // Free plan gets 1, others unlimited
-        return plan.id === 'free' ? 1 : -1
+        // Free plan gets 3, others unlimited
+        return plan.id === 'free' ? 3 : -1
       default:
         return 0
     }

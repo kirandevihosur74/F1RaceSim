@@ -238,7 +238,7 @@ export function getFeatureLimit(planId: string, feature: string): number {
     case 'strategies':
       return plan.limits.strategies
     case 'ai_recommendations':
-      return planId === 'free' ? 1 : -1 // Free: 1, Pro+: unlimited
+      return planId === 'free' ? 3 : -1 // Free: 3, Pro+: unlimited
     default:
       return 0
   }

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const limits = {
       simulations: plan.limits.simulationsPerDay,
       strategies: plan.limits.strategies,
-      ai_recommendations: userPlanId === 'free' ? 1 : -1
+      ai_recommendations: userPlanId === 'free' ? 3 : -1
     }
 
     return NextResponse.json({

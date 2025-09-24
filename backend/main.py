@@ -88,7 +88,7 @@ async def health_check(request: Request):
     return {"status": "healthy", "service": "f1-race-simulator"}
 
 @app.post("/simulate-race", response_model=SimulationResponse)
-@limiter.limit("3/day")
+@limiter.limit("100/day")  # Higher limit - let the plan system control actual limits
 async def simulate_race_endpoint(request: Request, body: SimulationRequest):
     """
     Simulate a Formula 1 race with given strategy parameters.
@@ -117,7 +117,7 @@ async def simulate_race_endpoint(request: Request, body: SimulationRequest):
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 @app.post("/strategy-recommendation", response_model=RecommendationResponse)
-@limiter.limit("3/day")
+@limiter.limit("100/day")  # Higher limit - let the plan system control actual limits
 async def strategy_recommendation_endpoint(request: Request, body: StrategyRecommendationRequest):
     """
     Get AI-generated strategy recommendations based on race scenario.

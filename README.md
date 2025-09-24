@@ -33,11 +33,12 @@ A comprehensive Formula 1 race strategy simulator that helps you plan, simulate,
 ### User Management & Analytics
 - **Google Authentication** - Secure sign-in with NextAuth.js
 - **Usage Tracking** - Monitor daily usage across all features with rate limiting
-- **Plan Management** - Free, Pro, and Business tier support
+- **Plan Management** - Free, Pro, and Business tier support with enhanced limits
 - **Waitlist System** - Join waitlist for premium plans
-- **Admin Dashboard** - Comprehensive user and system analytics
+- **Admin Dashboard** - Comprehensive user and system analytics (admin-only access)
 - **PDF Reports** - Generate detailed simulation reports with charts and analysis
 - **Results Sharing** - Share simulation results via native sharing or clipboard
+- **Demo Video** - Interactive product demonstration on authentication page
 
 ### Advanced Features
 - **Real-time Weather** - Track conditions and grip levels with live API integration
@@ -92,27 +93,31 @@ Visit `http://localhost:3000` to see the application.
 
 ### How to Use
 
-1. **Sign In** - Use Google authentication to access all features
-2. **Choose a Track** - Pick from available F1 circuits
-3. **Build Your Strategy** - Set pit stop laps, tire compounds, and driving style
-4. **Save & Run** - Save your strategy and run the simulation
-5. **View Results** - Simulation results appear in a popup window with interactive charts
-6. **Download Reports** - Export detailed simulation results as PDF reports
-7. **Get AI Tips** - Receive strategy recommendations from AI
-8. **Compare Results** - Test multiple strategies side by side
+1. **Watch Demo** - See the product in action with our interactive demo video
+2. **Sign In** - Use Google authentication to access all features
+3. **Choose a Track** - Pick from available F1 circuits
+4. **Build Your Strategy** - Set pit stop laps, tire compounds, and driving style
+5. **Save & Run** - Save your strategy and run the simulation
+6. **View Results** - Simulation results appear in a popup window with interactive charts
+7. **Download Reports** - Export detailed simulation results as PDF reports
+8. **Get AI Tips** - Receive strategy recommendations from AI (3 per day on free plan)
+9. **Compare Results** - Test multiple strategies side by side
 
 
 ---
 
 ## Plan Features & Limits
 
+> **Recent Update**: Enhanced free plan with 3 simulations and 3 AI recommendations per day! 🚀
+
 ### Free Plan
 - Basic Race Strategy Creation
-- 1 Simulation per Day
+- **3 Simulations per Day** ⬆️
 - Strategy Comparison
 - Weather Data
 - Track Selection
-- 1 AI Recommendation
+- **3 AI Recommendations per Day** ⬆️
+- 5 Strategies Total
 
 ### Pro Plan (Waitlist)
 - Basic Race Strategy Creation
@@ -120,8 +125,9 @@ Visit `http://localhost:3000` to see the application.
 - Weather Data
 - Track Selection
 - Advanced Analytics
-- Unlimited Simulations
-- Unlimited AI Recommendations
+- **Unlimited Simulations** 🚀
+- **Unlimited AI Recommendations** 🚀
+- 50 Strategies Total
 
 ### Business Plan (Waitlist)
 - Basic Race Strategy Creation
@@ -129,8 +135,9 @@ Visit `http://localhost:3000` to see the application.
 - Weather Data
 - Track Selection
 - Advanced Analytics
-- Unlimited Simulations
-- Unlimited AI Recommendations
+- **Unlimited Simulations** 🚀
+- **Unlimited AI Recommendations** 🚀
+- Unlimited Strategies
 
 ---
 

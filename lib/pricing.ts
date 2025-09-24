@@ -26,18 +26,18 @@ export const pricingPlans: PricingPlan[] = [
     description: 'Perfect for getting started',
     cta: 'Get Started Free',
     limits: {
-      simulationsPerDay: 1,
+      simulationsPerDay: 3,
       strategies: 5,
     },
     features: [
       { id: 'basic-strategy', name: 'Basic Race Strategy Creation', included: true },
-      { id: 'limited-simulations', name: '1 Simulation per Day', included: true },
+      { id: 'limited-simulations', name: '3 Simulations per Day', included: true },
       { id: 'strategy-comparison', name: 'Strategy Comparison', included: true },
       { id: 'weather-data', name: 'Weather Data', included: true },
       { id: 'track-selection', name: 'Track Selection', included: true },
       { id: 'advanced-analytics', name: 'Advanced Analytics', included: false },
       { id: 'unlimited-simulations', name: 'Unlimited Simulations', included: false },
-      { id: 'ai-recommendations', name: '1 AI Recommendation', included: true },
+      { id: 'ai-recommendations', name: '3 AI Recommendations', included: true },
     ],
   },
   {
