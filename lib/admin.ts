@@ -8,15 +8,6 @@ export const ADMIN_EMAILS = [
 
 export const isAdmin = (email: string | null | undefined): boolean => {
   if (!email) return false
-  
-  // Debug logging to help identify issues
-  console.log('Admin check:', {
-    email: email,
-    emailLower: email.toLowerCase(),
-    adminEmails: ADMIN_EMAILS,
-    isAdmin: ADMIN_EMAILS.includes(email.toLowerCase())
-  })
-  
   return ADMIN_EMAILS.includes(email.toLowerCase())
 }
 
