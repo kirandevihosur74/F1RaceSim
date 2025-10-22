@@ -88,10 +88,15 @@ IMPORTANT:
                 "driver_approach_adjustments": "",
                 "potential_time_savings_or_risks": ""
             }
-        return recommendation_json if recommendation_json else get_mock_recommendation(scenario)
+        # Ensure we always return a dictionary
+        if recommendation_json and isinstance(recommendation_json, dict):
+            return recommendation_json
+        else:
+            print(f"Gemini returned invalid format: {recommendation_json}")
+            return get_mock_recommendation(scenario)
         
     except Exception as e:
-        print(f"OpenAI API error: {e}")
+        print(f"Gemini API error: {e}")
         return get_mock_recommendation(scenario)
 
 def get_mock_recommendation(scenario: str) -> dict:

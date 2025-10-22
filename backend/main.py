@@ -127,11 +127,26 @@ async def strategy_recommendation_endpoint(request: Request, body: StrategyRecom
     try:
         recommendation = await get_strategy_recommendation(body.scenario)
         
+        # Ensure recommendation is a dictionary
+        if not isinstance(recommendation, dict):
+            print(f"Warning: recommendation is not a dict, got {type(recommendation)}: {recommendation}")
+            # Convert string to dict if needed
+            if isinstance(recommendation, str):
+                recommendation = {
+                    "pit_stop_timing": recommendation,
+                    "tire_compound_strategy": "",
+                    "driver_approach_adjustments": "",
+                    "potential_time_savings_or_risks": ""
+                }
+        
+        print(f"Returning recommendation: {recommendation}")
+        
         return RecommendationResponse(
             status="success",
             recommendation=recommendation
         )
     except Exception as e:
+        print(f"Error in strategy recommendation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get recommendation: {str(e)}")
 
 # AWS Lambda handler
