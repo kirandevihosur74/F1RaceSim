@@ -125,26 +125,38 @@ async def strategy_recommendation_endpoint(request: Request, body: StrategyRecom
     - **scenario**: Description of the race scenario and current strategy
     """
     try:
+        print(f"Calling get_strategy_recommendation with scenario: {body.scenario}")
         recommendation = await get_strategy_recommendation(body.scenario)
+        print(f"Received recommendation type: {type(recommendation)}")
+        print(f"Received recommendation value: {recommendation}")
         
         # Ensure recommendation is a dictionary
         if not isinstance(recommendation, dict):
-            print(f"Warning: recommendation is not a dict, got {type(recommendation)}: {recommendation}")
+            print(f"CRITICAL: recommendation is not a dict, got {type(recommendation)}: {recommendation}")
             # Convert string to dict if needed
             if isinstance(recommendation, str):
+                print("Converting string to dict structure")
                 recommendation = {
                     "pit_stop_timing": recommendation,
                     "tire_compound_strategy": "",
                     "driver_approach_adjustments": "",
                     "potential_time_savings_or_risks": ""
                 }
+                print(f"Converted to: {recommendation}")
+            else:
+                print(f"Unknown type, falling back to mock")
+                from api.strategy import get_mock_recommendation
+                recommendation = get_mock_recommendation(body.scenario)
         
-        print(f"Returning recommendation: {recommendation}")
+        print(f"Final recommendation before Pydantic: {recommendation}")
+        print(f"Final recommendation type: {type(recommendation)}")
         
-        return RecommendationResponse(
+        response = RecommendationResponse(
             status="success",
             recommendation=recommendation
         )
+        print(f"Pydantic response created successfully: {response}")
+        return response
     except Exception as e:
         print(f"Error in strategy recommendation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get recommendation: {str(e)}")

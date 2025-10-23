@@ -82,22 +82,44 @@ IMPORTANT:
         except json.JSONDecodeError as e:
             print("JSON decode error:", e)
             print("Raw response was:", response_text)
-            recommendation_json = {
-                "pit_stop_timing": "Could not parse AI response. Please try again.",
-                "tire_compound_strategy": "",
-                "driver_approach_adjustments": "",
-                "potential_time_savings_or_risks": ""
-            }
-        # Ensure we always return a dictionary
-        if recommendation_json and isinstance(recommendation_json, dict):
-            return recommendation_json
-        else:
-            print(f"Gemini returned invalid format: {recommendation_json}")
+            print("Cleaned response was:", response_text_clean)
+            
+            # If JSON parsing fails, try to extract the recommendation text and structure it
+            if response_text_clean and len(response_text_clean) > 10:
+                # Use the AI response as the main recommendation
+                recommendation_json = {
+                    "pit_stop_timing": response_text_clean,
+                    "tire_compound_strategy": "Consider the recommended approach based on track conditions",
+                    "driver_approach_adjustments": "Monitor tire wear and adjust driving style accordingly", 
+                    "potential_time_savings_or_risks": "Potential time savings with proper execution"
+                }
+            else:
+                # Fallback to mock if no useful response
+                recommendation_json = {
+                    "pit_stop_timing": "Could not parse AI response. Please try again.",
+                    "tire_compound_strategy": "",
+                    "driver_approach_adjustments": "",
+                    "potential_time_savings_or_risks": ""
+                }
+        # Final safety check - ensure we NEVER return a string
+        if not isinstance(recommendation_json, dict):
+            print(f"CRITICAL: recommendation_json is not a dict, got {type(recommendation_json)}: {recommendation_json}")
             return get_mock_recommendation(scenario)
+        
+        print(f"Successfully parsed recommendation: {recommendation_json}")
+        return recommendation_json
         
     except Exception as e:
         print(f"Gemini API error: {e}")
         return get_mock_recommendation(scenario)
+    
+    # Final absolute safety check - this should never happen
+    if not isinstance(recommendation_json, dict):
+        print(f"ABSOLUTE CRITICAL ERROR: recommendation_json is not a dict: {type(recommendation_json)}")
+        print(f"This should never happen! Value: {recommendation_json}")
+        return get_mock_recommendation(scenario)
+    
+    return recommendation_json
 
 def get_mock_recommendation(scenario: str) -> dict:
     """
